@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEP Schema Architect</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-logo">
+    <svg viewBox="0 0 24 24" fill="#fa0f00"><path d="M14.235 2L22 22h-5.538l-2.03-5.385H9.568L14.235 2zm-4.47 10.892l2.003 5.723H7.762l2.003-5.723zM2 22l3.846-9.846L9.385 22H2z"/></svg>
+    AEP Schema Architect
+  </div>
+  <input type="text" id="schemaName" placeholder="e.g. Profile Schema"
+    style="width:180px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:5px;padding:5px 9px;font-size:12px;font-family:inherit;outline:none">
+  <div class="tb-actions">
+    <button class="tbtn" id="undoBtn" onclick="undo()" disabled><i class="ti ti-arrow-back-up"></i> Undo</button>
+    <button class="tbtn" id="redoBtn" onclick="redo()" disabled><i class="ti ti-arrow-forward-up"></i> Redo</button>
+    <div class="tb-div"></div>
+    <button class="tbtn" onclick="exportExcel()"><i class="ti ti-file-spreadsheet"></i> Export Excel</button>
+    <button class="tbtn" onclick="exportJSON()"><i class="ti ti-file-code"></i> Export JSON</button>
+    <div class="tb-div"></div>
+    <button class="tbtn" onclick="clearAll()"><i class="ti ti-trash"></i> Clear</button>
+  </div>
+</div>
+
+<!-- CONTROL BAR -->
+<div class="ctrl-bar">
+  <div class="ctrl-step" style="min-width:260px;flex-shrink:0">
+    <div class="step-lbl"><span class="sn">1</span> Upload Source File</div>
+    <div class="ctrl-row">
+      <div class="f">
+        <label>File — data dict, mapping or XDM JSON</label>
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.json" style="width:200px">
+      </div>
+      <div class="f" id="sheetBox" style="display:none">
+        <label>Sheet</label>
+        <select id="sheetSelect" style="width:120px"></select>
+      </div>
+      <button class="btn btn-primary" id="loadBtn" onclick="loadData()" style="display:none">
+        <i class="ti ti-table-import"></i> Load
+      </button>
+    </div>
+    <div class="up-note" id="upNote"></div>
+  </div>
+
+  <div class="ctrl-step">
+    <div class="step-lbl"><span class="sn">2</span> Field Group &amp; Object Mapping (Bulk Apply)</div>
+    <div class="ctrl-row">
+      <div class="f"><label>Tenant Node</label>
+        <input type="text" id="cTenant" placeholder="_myorg" style="width:100px"></div>
+      <div class="f"><label>Field Group Name</label>
+        <input type="text" id="cFieldGroup" placeholder="e.g. Customer Details FG" style="width:165px"></div>
+      <div class="f"><label>Classification</label>
+        <select id="cFGClass" style="width:95px">
+          <option value="Custom">Custom</option>
+          <option value="OOTB">OOTB</option>
+        </select></div>
+      <div class="f"><label>Object Path</label>
+        <input type="text" id="cObjectPath" placeholder="e.g. customer.data.name" style="width:165px"></div>
+      <div class="f">
+        <label>Is Array?</label>
+        <select id="cArray" style="width:200px" onchange="onArrChange()">
+          <option value=""></option>
+        </select>
+      </div>
+      <div class="f"><label>Identity</label>
+        <select id="cIdentity" style="width:105px">
+          <option value=""></option>
+          <option value="Primary">Primary</option>
+          <option value="Secondary">Secondary</option>
+        </select></div>
+      <button class="btn btn-primary" onclick="applyMapping()">
+        <i class="ti ti-check"></i> Apply to Selected
+      </button>
+    </div>
+    <div class="cfg-ctx none" id="cfgCtx"></div>
+  </div>
+</div>
+
+<!-- STEP 3 TABLE -->
+<div class="tbl-wrap">
+  <div class="tbl-card">
+    <div class="tbl-topbar">
+      <div class="sec-title"><span class="sn">3</span> Mapping Table</div>
+      <div class="tbl-divider"></div>
+      <button class="btn btn-success" onclick="addRow()"><i class="ti ti-row-insert-bottom"></i> Add Row</button>
+      <button class="btn btn-success" onclick="openAddColModal()"><i class="ti ti-column-insert-right"></i> Add Column</button>
+      <button class="btn" onclick="openColPicker()">
+        <i class="ti ti-layout-columns"></i> Show/Hide Columns
+      </button>
+      <button class="btn" id="manageColsBtn" onclick="openManageColsModal()" style="display:none">
+        <i class="ti ti-star"></i> Custom Cols
+        <span id="customColCount" style="font-size:10px;background:#e8d000;color:#5a4a00;border-radius:3px;padding:0 4px;margin-left:2px"></span>
+      </button>
+      <div class="tbl-divider"></div>
+      <button class="btn btn-danger" id="delSelBtn" style="display:none" onclick="deleteSelected()">
+        <i class="ti ti-trash"></i> Delete Selected (<span id="delCount">0</span>)
+      </button>
+      <button class="btn btn-danger" id="clearFiltersBtn" onclick="clearAllFilters()" style="display:none">
+        <i class="ti ti-filter-off"></i> Clear All Filters
+      </button>
+      <span class="tbl-info"><span id="selCount">0</span> selected · <span id="rowCount">0</span> rows</span>
+    </div>
+
+    <div class="tbl-scroll" id="tblScroll">
+      <table class="mt">
+        <thead id="mtHead"></thead>
+        <tbody id="mtBody"></tbody>
+      </table>
+      <div class="empty" id="mtEmpty">
+        <i class="ti ti-table-off" style="font-size:38px"></i>
+        <p>Upload and load a source file,<br>or click <b>Add Row</b> to start manually.</p>
+        <div style="margin-top:12px;width:100%;max-width:500px;text-align:left">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:11px;color:#aaa;font-weight:600">Sample XDM JSON</span>
+            <button class="btn" style="height:24px;font-size:10px;padding:0 8px" onclick="copySampleJson()"><i class="ti ti-copy"></i> Copy</button>
+          </div>
+          <pre id="sampleJsonPre" style="background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;padding:12px;font-size:11px;font-family:'SF Mono',Consolas,monospace;color:#333;overflow:auto;text-align:left;margin:0">{
+  "_myorg": {
+    "customer": {
+      "firstName": "Jane",
+      "lastName": "Doe",
+      "email": "jane@example.com",
+      "loyaltyTier": "gold",
+      "totalPurchases": 14
+    }
+  },
+  "identityMap": {
+    "ECID": [{ "id": "12345", "primary": true }]
+  }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SINGLE pinned horizontal scrollbar -->
+<div class="hbar" id="hbar" onscroll="syncH()">
+  <div class="hbar-inner" id="hbarInner"></div>
+</div>
+<div class="statusbar" id="statusbar"></div>
+
+<!-- ADD COLUMN MODAL -->
+<div class="modal-bg" id="addColModal">
+  <div class="modal">
+    <h3><i class="ti ti-column-insert-right" style="color:#1473e6"></i> Add Custom Column</h3>
+    <div class="mf">
+      <label>Column Name <span style="color:#d23f3f">*</span></label>
+      <input type="text" id="newColName" placeholder="e.g. DULE Labels, Notes, Priority"
+        onkeydown="if(event.key==='Enter')commitAddCol()">
+      <div class="modal-hint">Appears after standard columns. Editable on every row. Included in export.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('addColModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="commitAddCol()"><i class="ti ti-check"></i> Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGE COLUMNS MODAL -->
+<div class="modal-bg" id="manageColsModal">
+  <div class="modal">
+    <h3><i class="ti ti-columns-2" style="color:#1473e6"></i> Custom Columns</h3>
+    <p style="font-size:11px;color:#888;margin-bottom:10px">Click × to remove a column and all its data.</p>
+    <div class="col-tags" id="customColTags"></div>
+    <div class="mf">
+      <label>Add another</label>
+      <div style="display:flex;gap:6px">
+        <input type="text" id="newColName2" placeholder="Column name…" style="flex:1"
+          onkeydown="if(event.key==='Enter')commitAddCol2()">
+        <button class="btn btn-primary" style="height:32px" onclick="commitAddCol2()"><i class="ti ti-plus"></i></button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="closeModal('manageColsModal')">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- COLUMN PICKER MODAL -->
+<div class="modal-bg" id="colPickerModal">
+  <div class="modal" style="width:460px;max-height:80vh;display:flex;flex-direction:column">
+    <h3><i class="ti ti-layout-columns" style="color:#1473e6"></i> Show / Hide Columns</h3>
+    <p style="font-size:11px;color:#888;margin-bottom:10px">
+      Choose which columns to display. Hidden columns are preserved in your data and included in exports.
+      Column order never changes.
+    </p>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button class="btn btn-primary" style="height:28px;font-size:11px" onclick="showAllCols()">
+        <i class="ti ti-eye"></i> Show All
+      </button>
+      <button class="btn" style="height:28px;font-size:11px" onclick="hideAllCols()">
+        <i class="ti ti-eye-off"></i> Default View
+      </button>
+    </div>
+    <div id="colPickerList" style="flex:1;overflow-y:auto;padding-right:4px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="closeModal('colPickerModal')">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- JS: load order matters — column-schema first, then parser/filter/render/export, app last -->
+<script src="js/column-schema.js"></script>
+<script src="js/parser.js"></script>
+<script src="js/filter.js"></script>
+<script src="js/render.js"></script>
+<script src="js/export.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
