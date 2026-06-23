@@ -179,9 +179,16 @@ function buildGroups(){
     map[k].push(i);
   });
   const allKeys=Object.keys(map);
-  const identityKeys=allKeys.filter(k=>k!==''&&hasIdentity(map[k])).sort((a,b)=>a.localeCompare(b));
-  const assignedKeys=allKeys.filter(k=>k!==''&&!hasIdentity(map[k])).sort((a,b)=>a.localeCompare(b));
-  const rootKeys=allKeys.filter(k=>k==='');
+  // Only groups containing a PRIMARY row float to top.
+  // Secondary-only groups stay in normal position — they sort within their group via sortGroupIndices.
+  // Root group (k==='') participates in identity promotion if it contains a Primary row.
+  function hasPrimary(indices){
+    return indices.some(i=>data[i]&&data[i]["Primary/Secondary Identity"]==='Primary');
+  }
+  const identityKeys=allKeys.filter(k=>hasPrimary(map[k])).sort((a,b)=>a.localeCompare(b));
+  const identitySet=new Set(identityKeys);
+  const assignedKeys=allKeys.filter(k=>!identitySet.has(k)&&k!=='').sort((a,b)=>a.localeCompare(b));
+  const rootKeys=allKeys.filter(k=>k===''&&!identitySet.has(k));
   const orderedKeys=[...identityKeys,...assignedKeys,...rootKeys];
 
   // Sort indices within each group: Primary first, Secondary second, rest in original order
