@@ -80,6 +80,40 @@
       </button>
     </div>
     <div class="cfg-ctx none" id="cfgCtx"></div>
+    <div style="margin-top:6px">
+      <span id="metaToggle" onclick="toggleMetaFields()"
+        style="font-size:10px;color:#1473e6;cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:3px">
+        <i class="ti ti-chevron-right" id="metaChevron" style="font-size:11px"></i> Export Metadata
+      </span>
+      <div id="metaFields" style="display:none;margin-top:8px">
+        <div class="ctrl-row" style="flex-wrap:wrap;gap:8px">
+          <div class="f"><label>Change Date</label>
+            <input type="text" id="mChangeDate" placeholder="DD/MM/YYYY" style="width:110px"></div>
+          <div class="f"><label>Consultant</label>
+            <input type="text" id="mConsultant" placeholder="Name" style="width:120px"></div>
+          <div class="f"><label>XDM Schema Name</label>
+            <input type="text" id="mSchemaName" placeholder="e.g. sch_profl_customer" style="width:160px"></div>
+          <div class="f"><label>XDM Schema Type</label>
+            <select id="mSchemaType" style="width:130px">
+              <option value=""></option>
+              <option value="Profile">Profile</option>
+              <option value="ExperienceEvent">ExperienceEvent</option>
+              <option value="Lookup">Lookup</option>
+              <option value="ExperienceEvent (Streaming)">ExperienceEvent (Streaming)</option>
+            </select></div>
+          <div class="f"><label>XDM Dataset Name</label>
+            <input type="text" id="mDatasetName" placeholder="e.g. ds_profl_customer" style="width:160px"></div>
+          <div class="f"><label>Source Table Name</label>
+            <input type="text" id="mSourceTable" placeholder="e.g. CRM_CUSTOMERS" style="width:140px"></div>
+          <div class="f"><label>Source</label>
+            <input type="text" id="mSource" placeholder="e.g. Salesforce" style="width:110px"></div>
+          <div class="f"><label>Upload Method</label>
+            <input type="text" id="mUploadMethod" placeholder="e.g. Batch" style="width:110px"></div>
+          <div class="f"><label>Update Frequency</label>
+            <input type="text" id="mUpdateFreq" placeholder="e.g. Daily" style="width:110px"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -116,26 +150,6 @@
       <div class="empty" id="mtEmpty">
         <i class="ti ti-table-off" style="font-size:38px"></i>
         <p>Upload and load a source file,<br>or click <b>Add Row</b> to start manually.</p>
-        <div style="margin-top:12px;width:100%;max-width:500px;text-align:left">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-            <span style="font-size:11px;color:#aaa;font-weight:600">Sample XDM JSON</span>
-            <button class="btn" style="height:24px;font-size:10px;padding:0 8px" onclick="copySampleJson()"><i class="ti ti-copy"></i> Copy</button>
-          </div>
-          <pre id="sampleJsonPre" style="background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;padding:12px;font-size:11px;font-family:'SF Mono',Consolas,monospace;color:#333;overflow:auto;text-align:left;margin:0">{
-  "_myorg": {
-    "customer": {
-      "firstName": "Jane",
-      "lastName": "Doe",
-      "email": "jane@example.com",
-      "loyaltyTier": "gold",
-      "totalPurchases": 14
-    }
-  },
-  "identityMap": {
-    "ECID": [{ "id": "12345", "primary": true }]
-  }
-}</pre>
-        </div>
       </div>
     </div>
   </div>

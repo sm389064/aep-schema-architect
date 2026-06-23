@@ -1,5 +1,7 @@
 /* ─── EXPORT ─── */
 
+function metaVal(id){ return (document.getElementById(id)||{}).value||''; }
+
 function exportExcel(){
   const schemaName=(document.getElementById('schemaName').value||'').trim()||'AEP_mapping';
   const allDataCols=[...STD_COLS,...customCols];
@@ -15,8 +17,23 @@ function exportExcel(){
   groups.forEach(g=>g.indices.forEach(i=>orderedRows.push(data[i])));
 
   const wsData=[];
-  wsData.push(["Schema",schemaName,"","Tenant",tenant,"","Generated",new Date().toISOString(),"","Tool","AEP Schema Architect v1.0"]);
+  // Metadata rows (rows 1-15)
+  wsData.push(["Change Date",       metaVal('mChangeDate')]);
+  wsData.push(["Consultant",        metaVal('mConsultant')]);
   wsData.push([]);
+  wsData.push(["XDM Schema Name",   metaVal('mSchemaName')]);
+  wsData.push(["XDM Schema Type",   metaVal('mSchemaType')]);
+  wsData.push(["XDM Dataset Name",  metaVal('mDatasetName')]);
+  wsData.push([]);
+  wsData.push(["Source Table Name", metaVal('mSourceTable')]);
+  wsData.push(["Source",            metaVal('mSource')]);
+  wsData.push(["Upload Method",     metaVal('mUploadMethod')]);
+  wsData.push(["Update Frequency",  metaVal('mUpdateFreq')]);
+  wsData.push(["Tenant",            tenant]);
+  wsData.push(["Generated",         new Date().toISOString()]);
+  wsData.push(["Tool",              "AEP Schema Architect v1.0"]);
+  wsData.push([]);
+  // Column headers (row 16) then data rows (row 17+)
   wsData.push(allDataCols);
   orderedRows.forEach(r=>wsData.push(allDataCols.map(c=>r[c]||'')));
 
@@ -63,9 +80,4 @@ function exportJSON(){
   a.download=schemaName+'_contract.json';
   a.click();
   URL.revokeObjectURL(a.href);
-}
-
-function copySampleJson(){
-  const txt=document.getElementById('sampleJsonPre').textContent;
-  navigator.clipboard.writeText(txt).then(()=>setStatus('Sample JSON copied!')).catch(()=>setStatus('Copy failed',true));
 }

@@ -13,6 +13,7 @@ let jsonRows = [];
 let s2Touched = false;
 let prevSelCount = 0;
 let syncLock = false;
+let _dragSrcIdx = null;
 
 /* ─── HELPERS ─── */
 function allCols(){return[...STD_COLS,...customCols];}
@@ -124,10 +125,22 @@ function setupFileInput(){
         mode='json';
         try{
           const obj=JSON.parse(ev.target.result);
-          jsonRows=parseXDM(obj);
-          document.getElementById('sheetBox').style.display='none';
-          document.getElementById('loadBtn').style.display='inline-flex';
-          note(`JSON · Tenant: <b>${detectTenant(obj)||'none'}</b> · ${jsonRows.length} fields`);
+          if(Array.isArray(obj)){
+            // Format 2: AEP schema export
+            const result=parseAEPExport(obj);
+            jsonRows=result.rows;
+            const tenant=result.tenant||'(detected from data)';
+            const fgCount=result.fieldGroupCount;
+            document.getElementById('sheetBox').style.display='none';
+            document.getElementById('loadBtn').style.display='inline-flex';
+            note(`AEP Schema Export · Tenant: <b>${tenant}</b> · ${jsonRows.length} fields · ${fgCount} field groups`);
+          } else {
+            // Format 1: existing XDM instance data
+            jsonRows=parseXDM(obj);
+            document.getElementById('sheetBox').style.display='none';
+            document.getElementById('loadBtn').style.display='inline-flex';
+            note(`JSON · Tenant: <b>${detectTenant(obj)||'none'}</b> · ${jsonRows.length} fields`);
+          }
         }catch(err){setStatus('Invalid JSON: '+err.message,true);}
       } else {
         mode='sheet';
@@ -344,6 +357,87 @@ function updateCtxStrip(){
     {ctx.className='cfg-ctx single';ctx.innerHTML=`<i class="ti ti-info-circle"></i> ${checked.length} rows · same object path ${ll}`;}
   else
     {ctx.className='cfg-ctx mixed';ctx.innerHTML=`<i class="ti ti-alert-triangle"></i> ${checked.length} rows · multiple object paths — Apply updates all. ${ll}`;}
+}
+
+/* ─── META TOGGLE ─── */
+function toggleMetaFields(){
+  const panel=document.getElementById('metaFields');
+  const chev=document.getElementById('metaChevron');
+  const open=panel.style.display==='none';
+  panel.style.display=open?'flex':'none';
+  panel.style.flexWrap='wrap';
+  panel.style.gap='8px';
+  chev.className=open?'ti ti-chevron-down':'ti ti-chevron-right';
+}
+
+/* ─── DRAG & DROP ROWS ─── */
+function rowDragStart(e, idx){
+  _dragSrcIdx=idx;
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain', idx);
+  setTimeout(()=>{
+    const rows=document.querySelectorAll('.arow');
+    rows.forEach(r=>{if(parseInt(r.querySelector('[data-i]')?.dataset.i)===idx)r.style.opacity='.4';});
+  },0);
+}
+
+function rowDragEnd(e){
+  document.querySelectorAll('.arow').forEach(r=>{r.style.opacity='';r.classList.remove('drag-over');});
+  _dragSrcIdx=null;
+}
+
+function rowDragOver(e, idx){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  document.querySelectorAll('.arow').forEach(r=>r.classList.remove('drag-over'));
+  const tr=document.querySelector(`.arow [data-i="${idx}"]`)?.closest('tr');
+  if(tr) tr.classList.add('drag-over');
+}
+
+function rowDrop(e, targetIdx){
+  e.preventDefault();
+  document.querySelectorAll('.arow').forEach(r=>r.classList.remove('drag-over'));
+  const srcIdx=_dragSrcIdx;
+  if(srcIdx===null||srcIdx===targetIdx) return;
+
+  const srcRow=data[srcIdx];
+  const tgtRow=data[targetIdx];
+  const srcPath=srcRow.__objectPath||'';
+  const tgtPath=tgtRow.__objectPath||'';
+
+  if(srcPath===tgtPath){
+    // Same group — simple reorder
+    pushH();
+    data.splice(srcIdx,1);
+    const newTarget=targetIdx>srcIdx?targetIdx-1:targetIdx;
+    data.splice(newTarget,0,srcRow);
+    renderTable();
+    setStatus('Row moved.');
+  } else {
+    // Different group — confirm path change
+    const fieldName=srcRow["AEP Field Name"]||srcRow["Source Data Column"]||'this field';
+    const msg=`Move "${fieldName}" from group "${srcPath||'(root)'}" to "${tgtPath||'(root)'}"?\n\nThis will update its XDM Column Path.`;
+    if(!confirm(msg)) return;
+
+    const newFG=prompt(
+      `Update Field Group Name for "${fieldName}"?\nCurrent: "${srcRow["Field Group Name"]||'(none)'}" — enter new name or leave blank to keep current.`,
+      srcRow["Field Group Name"]||''
+    );
+
+    pushH();
+    srcRow.__objectPath=tgtPath;
+    const tenant=extractTenant(srcRow["XDM Column Path"])||document.getElementById('cTenant').value.trim();
+    srcRow["XDM Column Path"]=buildPath(tenant,srcRow["Field Group Classification"],tgtPath,srcRow["AEP Field Name"],srcRow.__arrSeg);
+    if(newFG!==null&&newFG.trim()!=='') srcRow["Field Group Name"]=newFG.trim();
+
+    data.splice(srcIdx,1);
+    const newTarget=targetIdx>srcIdx?targetIdx-1:targetIdx;
+    data.splice(newTarget,0,srcRow);
+
+    if(tgtPath&&!groupOrder.includes(tgtPath)) groupOrder.push(tgtPath);
+    renderTable();
+    setStatus('Row moved to new group. Path updated.');
+  }
 }
 
 /* ─── MISC ─── */

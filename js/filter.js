@@ -183,5 +183,16 @@ function buildGroups(){
   const assignedKeys=allKeys.filter(k=>k!==''&&!hasIdentity(map[k])).sort((a,b)=>a.localeCompare(b));
   const rootKeys=allKeys.filter(k=>k==='');
   const orderedKeys=[...identityKeys,...assignedKeys,...rootKeys];
-  return orderedKeys.filter(k=>map[k]&&map[k].length).map(k=>({key:k,indices:map[k]}));
+
+  // Sort indices within each group: Primary first, Secondary second, rest in original order
+  function sortGroupIndices(indices){
+    return [...indices].sort((a,b)=>{
+      const va=data[a]["Primary/Secondary Identity"]||'';
+      const vb=data[b]["Primary/Secondary Identity"]||'';
+      const rank=v=>v==='Primary'?0:v==='Secondary'?1:2;
+      return rank(va)-rank(vb);
+    });
+  }
+
+  return orderedKeys.filter(k=>map[k]&&map[k].length).map(k=>({key:k,indices:sortGroupIndices(map[k])}));
 }

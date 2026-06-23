@@ -113,13 +113,14 @@ function renderTable(){
   document.getElementById('rowCount').textContent=hasActiveFilters()?`${filteredCount} of ${data.length} (filtered)`:data.length;
   const cfBtn=document.getElementById('clearFiltersBtn');
   if(cfBtn)cfBtn.style.display=hasActiveFilters()?'inline-flex':'none';
-  const totalCols=cols.length+2;
+  const totalCols=cols.length+3;
   prevSelCount=0;
   document.getElementById('manageColsBtn').style.display=customCols.length?'inline-flex':'none';
   document.getElementById('customColCount').textContent=customCols.length||'';
 
   const _flt=filterValues;
   document.getElementById('mtHead').innerHTML=`<tr>
+    <th style="width:24px;background:#f0f0f0;position:sticky;left:0;z-index:21"></th>
     <th class="tdchk"><input type="checkbox" onclick="toggleAll(this)"></th>
     ${cols.map(c=>{
       const isCC=customCols.includes(c);
@@ -166,7 +167,14 @@ function renderTable(){
     visibleIndices.forEach(i=>{
       const row=data[i];
       const idVal=row["Primary/Secondary Identity"]||'';
-      html+=`<tr class="arow" data-grp="${esc(g.key)}">
+      html+=`<tr class="arow" data-grp="${esc(g.key)}" ondragover="rowDragOver(event,${i})" ondrop="rowDrop(event,${i})">
+        <td class="tddrag" draggable="true"
+          onmousedown="event.stopPropagation()"
+          ondragstart="rowDragStart(event,${i})"
+          ondragend="rowDragEnd(event)"
+          title="Drag to reorder">
+          <i class="ti ti-grip-vertical" style="color:#ccc;font-size:13px;cursor:grab"></i>
+        </td>
         <td class="tdchk"><input type="checkbox" class="rc" data-i="${i}" onchange="onRowCheck(this)"></td>
         ${cols.map(c=>{
           const val=row[c]||'';

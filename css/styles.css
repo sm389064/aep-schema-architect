@@ -81,7 +81,10 @@ table.mt{width:max-content;min-width:100%;border-collapse:collapse;font-size:12p
 .id-primary{background:#e6ebff;color:#3146d0;border:1px solid #a5b4f5}
 .id-secondary{background:#f1e8ff;color:#7c3dc0;border:1px solid #c9a8f0}
 
-.tdchk{width:32px;text-align:center;position:sticky;left:0;z-index:10;background:#fff}
+.tddrag{width:24px;text-align:center;cursor:grab;padding:0 4px;position:sticky;left:0;z-index:10;background:#fff}
+.mt tr.arow:hover .tddrag,.mt tr.arow.sel .tddrag{background:inherit}
+.mt tr.arow.drag-over td{border-top:2px solid #1473e6}
+.tdchk{width:32px;text-align:center;position:sticky;left:24px;z-index:10;background:#fff}
 .mt tr.arow:hover .tdchk,.mt tr.arow.sel .tdchk{background:inherit}
 .tddel{width:30px;text-align:center;border-left:1px solid #ebebeb;position:sticky;right:0;z-index:10;background:#fff}
 .mt tr.arow:hover .tddel,.mt tr.arow.sel .tddel{background:inherit}
