@@ -157,6 +157,11 @@ function setupFileInput(){
 
 function loadData(){
   pushH();collapsed={};s2Touched=false;prevSelCount=0;
+  document.getElementById('cTenant').value='';
+  document.getElementById('cFieldGroup').value='';
+  document.getElementById('cFGClass').value='Custom';
+  document.getElementById('cObjectPath').value='';
+  document.getElementById('cIdentity').value='';
   if(mode==='json'){
     data=jsonRows.map(r=>({...r}));
     data.forEach(r=>customCols.forEach(c=>{if(r[c]===undefined)r[c]='';}));
