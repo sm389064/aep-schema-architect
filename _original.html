@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEP Schema Architect</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:#f0f0f0;color:#2c2c2c;font-size:13px;display:flex;flex-direction:column}
+
+.topbar{display:flex;align-items:center;padding:0 16px;height:50px;background:#161616;color:#fff;flex-shrink:0;gap:12px;z-index:200}
+.tb-logo{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:600}
+.tb-logo svg{width:24px;height:24px;flex-shrink:0}
+.tb-actions{display:flex;gap:6px;margin-left:auto;align-items:center}
+.tb-div{width:1px;height:22px;background:rgba(255,255,255,.2)}
+.tbtn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:5px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:.15s;white-space:nowrap}
+.tbtn:hover{background:rgba(255,255,255,.12)}
+.tbtn:disabled{opacity:.35;cursor:not-allowed}
+.tbtn i{font-size:14px}
+
+.ctrl-bar{background:#fff;border-bottom:1px solid #ddd;flex-shrink:0;padding:10px 16px;display:flex;gap:0;align-items:stretch;overflow-x:auto;z-index:100}
+.ctrl-step{display:flex;flex-direction:column;gap:5px;padding:0 16px;border-right:1px solid #e4e4e4}
+.ctrl-step:first-child{padding-left:0}
+.ctrl-step:last-child{border-right:none;flex:1}
+.step-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#1473e6;display:flex;align-items:center;gap:5px}
+.step-lbl .sn{width:16px;height:16px;border-radius:50%;background:#1473e6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+.ctrl-row{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+.f{display:flex;flex-direction:column;gap:2px}
+.f label{font-size:10px;font-weight:500;color:#888;white-space:nowrap}
+input[type=text],input[type=file],select{padding:5px 7px;border:1px solid #ccc;border-radius:5px;background:#fff;color:#2c2c2c;font-size:12px;font-family:inherit;outline:none;height:30px;transition:border .15s}
+input[type=file]{font-size:11px;cursor:pointer;padding:3px 7px}
+input[type=text]:focus,select:focus{border-color:#1473e6;box-shadow:0 0 0 2px rgba(20,115,230,.1)}
+select:disabled{background:#f5f5f5;color:#aaa;cursor:not-allowed;border-color:#e0e0e0}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:0 13px;height:30px;border-radius:5px;border:1px solid #ccc;background:#fff;color:#333;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:.15s;white-space:nowrap;flex-shrink:0;align-self:flex-end}
+.btn:hover{background:#f2f2f2}
+.btn-primary{background:#1473e6;color:#fff;border-color:#1473e6}.btn-primary:hover{background:#0d66d0}
+.btn-danger{color:#c23b3b;border-color:#e8aaaa}.btn-danger:hover{background:#fff5f5}
+.btn-success{color:#1f7e5f;border-color:#a8d5c2}.btn-success:hover{background:#f0faf6}
+.btn i{font-size:13px}
+.up-note{font-size:10px;color:#888}
+
+.cfg-ctx{font-size:11px;display:none;align-items:center;gap:6px;padding:3px 8px;border-radius:5px;margin-top:2px}
+.cfg-ctx.single{display:flex;color:#1473e6;background:#eef5ff}
+.cfg-ctx.mixed{display:flex;color:#b45309;background:#fffbeb;border:1px solid #fde68a}
+.cfg-ctx.none{display:none}
+.cfg-ctx i{font-size:13px;flex-shrink:0}
+.load-link{font-size:10px;font-weight:600;color:#1473e6;cursor:pointer;text-decoration:underline;margin-left:4px}
+
+/* TABLE */
+.tbl-wrap{flex:1;display:flex;flex-direction:column;padding:12px 16px 0;min-height:0;overflow:hidden}
+.tbl-card{flex:1;display:flex;flex-direction:column;background:#fff;border:1px solid #ddd;border-radius:8px 8px 0 0;overflow:hidden;min-height:0}
+.tbl-topbar{padding:8px 14px;border-bottom:1px solid #e2e2e2;display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap}
+.sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#888;display:flex;align-items:center;gap:5px;flex-shrink:0}
+.sec-title .sn{width:16px;height:16px;border-radius:50%;background:#1473e6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+.tbl-divider{width:1px;height:18px;background:#e2e2e2;flex-shrink:0}
+.tbl-info{font-size:11px;color:#999;margin-left:auto}
+
+/* single scroll container — thead sticky, one horizontal scrollbar (pinned hbar only) */
+.tbl-scroll{flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;scrollbar-width:thin;scrollbar-color:#ccc #f5f5f5;overflow-x:hidden}
+/* hide horizontal scrollbar on the scroll container — use pinned hbar only */
+.tbl-scroll::-webkit-scrollbar{width:8px}
+.tbl-scroll::-webkit-scrollbar:horizontal{display:none}
+.tbl-scroll::-webkit-scrollbar-track{background:#f5f5f5}
+.tbl-scroll::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px}
+.tbl-scroll::-webkit-scrollbar-thumb:hover{background:#aaa}
+
+table.mt{width:max-content;min-width:100%;border-collapse:collapse;font-size:12px;table-layout:auto}
+.mt thead th{background:#f0f0f0;padding:8px 10px;border-bottom:2px solid #ddd;border-right:1px solid #e0e0e0;font-weight:600;font-size:11px;color:#555;white-space:nowrap;text-align:left;position:sticky;top:0;z-index:20}
+.mt thead th.custom-col{background:#fafaf6;color:#7a6a00;border-top:2px solid #e8d000}
+.mt td{padding:4px 8px;border-bottom:1px solid #f0f0f0;border-right:1px solid #f0f0f0;white-space:nowrap;vertical-align:middle}
+.mt tr.arow:hover td{background:#f0f6ff}
+.mt tr.arow.sel td{background:#e8f1fd}
+.mt tr.arow td.cc{background:#fffef0}
+.mt tr.arow:hover td.cc{background:#fdf9d0}
+.mt tr.arow.sel td.cc{background:#faf5d0}
+
+.ce{outline:none;padding:2px 5px;border-radius:3px;min-width:80px;display:block;width:100%}
+.ce:focus{background:#eef5ff;box-shadow:inset 0 0 0 1px #1473e6}
+
+/* always-visible inline select */
+.isel{width:100%;border:1px solid #e0e0e0;background:#fff;font-size:12px;font-family:inherit;cursor:pointer;padding:2px 5px;border-radius:4px;color:#2c2c2c;outline:none;height:26px;transition:border .15s,background .15s}
+.isel:hover{border-color:#1473e6}
+.isel:focus{border-color:#1473e6;box-shadow:0 0 0 2px rgba(20,115,230,.1)}
+/* identity colour tinting on the select itself */
+.isel.id-primary{background:#e6ebff;color:#3146d0;border-color:#a5b4f5;font-weight:600}
+.isel.id-secondary{background:#f1e8ff;color:#7c3dc0;border-color:#c9a8f0;font-weight:600}
+/* Identity badges — shown when value is set */
+.id-badge{display:inline-block;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;transition:.15s;user-select:none}
+.id-badge:hover{opacity:.8}
+.id-primary{background:#e6ebff;color:#3146d0;border:1px solid #a5b4f5}
+.id-secondary{background:#f1e8ff;color:#7c3dc0;border:1px solid #c9a8f0}
+
+.tdchk{width:32px;text-align:center;position:sticky;left:0;z-index:10;background:#fff}
+.mt tr.arow:hover .tdchk,.mt tr.arow.sel .tdchk{background:inherit}
+.tddel{width:30px;text-align:center;border-left:1px solid #ebebeb;position:sticky;right:0;z-index:10;background:#fff}
+.mt tr.arow:hover .tddel,.mt tr.arow.sel .tddel{background:inherit}
+.del-row-btn{width:20px;height:20px;border:none;background:transparent;cursor:pointer;border-radius:3px;display:flex;align-items:center;justify-content:center;color:#ddd;font-size:13px;margin:auto;transition:.15s}
+.del-row-btn:hover{background:#fde8e8;color:#c23b3b}
+
+.tdpath{font-family:'SF Mono',Consolas,monospace;font-size:11px;color:#1473e6}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:60px;color:#bbb;text-align:center}
+.empty i{font-size:38px}
+input[type=checkbox]{accent-color:#1473e6;width:13px;height:13px;cursor:pointer}
+
+.grp-row td{background:#eef3fb;border-top:2px solid #1473e6;border-bottom:1px solid #d4e3f7;padding:0}
+.grp-band{display:flex;align-items:center;gap:7px;padding:6px 10px}
+.grp-chev{font-size:13px;color:#1473e6;cursor:pointer;flex-shrink:0}
+.grp-ico{font-size:13px;color:#1473e6}
+.grp-label{font-family:'SF Mono',Consolas,monospace;font-size:11px;font-weight:600;color:#0d4ea8}
+.grp-tag{font-size:9px;font-weight:600;color:#5a7fb5;background:#fff;border:1px solid #cfe0f5;border-radius:10px;padding:1px 7px}
+.grp-count{font-size:10px;color:#7a93b8}
+.grp-add{margin-left:auto;display:flex;align-items:center;gap:4px;font-size:10px;color:#1473e6;cursor:pointer;padding:2px 8px;border-radius:4px;border:1px solid #cfe0f5;background:#fff;transition:.15s}
+.grp-add:hover{background:#eef5ff}
+
+/* single pinned horizontal scrollbar */
+.hbar{flex-shrink:0;overflow-x:scroll;overflow-y:hidden;height:16px;background:#e8e8e8;border-top:1px solid #d0d0d0;scrollbar-width:thin;scrollbar-color:#aaa #e0e0e0}
+.hbar::-webkit-scrollbar{height:16px}
+.hbar::-webkit-scrollbar-track{background:#e0e0e0}
+.hbar::-webkit-scrollbar-thumb{background:#aaa;border-radius:8px;border:3px solid #e0e0e0}
+.hbar::-webkit-scrollbar-thumb:hover{background:#888}
+.hbar-inner{height:1px}
+
+.statusbar{padding:3px 16px 5px;font-size:11px;color:#2d9d78;flex-shrink:0;background:#fff;border-top:1px solid #e8e8e8;min-height:22px}
+.statusbar.err{color:#c23b3b}
+/* column header filter dropdown */
+.th-wrap{display:flex;align-items:center;gap:3px;cursor:pointer;user-select:none;white-space:nowrap}
+.th-wrap:hover .th-arr{opacity:1}
+.th-arr{opacity:.6;font-size:inherit;color:inherit;line-height:1;flex-shrink:0}
+.flt-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:16px;height:16px;border-radius:8px;
+  background:#1473e6;color:#fff;font-size:9px;font-weight:700;
+  padding:0 4px;margin-left:4px;vertical-align:middle;flex-shrink:0;
+}
+.col-filter-dropdown{
+  position:fixed;z-index:999;background:#fff;
+  border:1px solid #ccc;border-radius:6px;
+  box-shadow:0 4px 20px rgba(0,0,0,.18);
+  min-width:220px;max-width:300px;
+  font-size:12px;overflow:hidden;
+}
+.col-flt-item{
+  padding:6px 12px;cursor:pointer;color:#333;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:background .1s;display:flex;align-items:center;
+}
+.col-flt-item:hover{background:#f0f6ff;color:#1473e6}
+.col-flt-item.selected{background:#eef5ff;color:#1473e6;font-weight:600}
+.col-flt-chk{display:flex;align-items:center;cursor:pointer;user-select:none;font-size:12px;width:100%}
+.col-flt-chk:hover{background:#f0f6ff}
+
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;display:none;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:8px;padding:20px;width:380px;max-width:95vw;box-shadow:0 8px 30px rgba(0,0,0,.18)}
+.modal h3{font-size:13px;font-weight:600;margin-bottom:14px;color:#222;display:flex;align-items:center;gap:7px}
+.modal .mf{margin-bottom:12px}
+.modal .mf label{font-size:11px;color:#666;font-weight:500;display:block;margin-bottom:4px}
+.modal .mf input{width:100%;height:32px}
+.modal-hint{font-size:11px;color:#999;margin-top:3px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.col-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.col-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:#f0f0f0;border:1px solid #ddd;border-radius:4px;font-size:11px;color:#444}
+.col-tag-x{cursor:pointer;color:#999;font-size:13px;line-height:1}
+.col-tag-x:hover{color:#c23b3b}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-logo">
+    <svg viewBox="0 0 24 24" fill="#fa0f00"><path d="M14.235 2L22 22h-5.538l-2.03-5.385H9.568L14.235 2zm-4.47 10.892l2.003 5.723H7.762l2.003-5.723zM2 22l3.846-9.846L9.385 22H2z"/></svg>
+    AEP Schema Architect
+  </div>
+  <div class="tb-actions">
+    <button class="tbtn" id="undoBtn" onclick="undo()" disabled><i class="ti ti-arrow-back-up"></i> Undo</button>
+    <button class="tbtn" id="redoBtn" onclick="redo()" disabled><i class="ti ti-arrow-forward-up"></i> Redo</button>
+    <div class="tb-div"></div>
+    <button class="tbtn" onclick="clearAll()"><i class="ti ti-trash"></i> Clear</button>
+  </div>
+</div>
+
+<!-- CONTROL BAR -->
+<div class="ctrl-bar">
+  <div class="ctrl-step" style="min-width:260px;flex-shrink:0">
+    <div class="step-lbl"><span class="sn">1</span> Upload Source File</div>
+    <div class="ctrl-row">
+      <div class="f">
+        <label>File — data dict, mapping or XDM JSON</label>
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.json" style="width:200px">
+      </div>
+      <div class="f" id="sheetBox" style="display:none">
+        <label>Sheet</label>
+        <select id="sheetSelect" style="width:120px"></select>
+      </div>
+      <button class="btn btn-primary" id="loadBtn" onclick="loadData()" style="display:none">
+        <i class="ti ti-table-import"></i> Load
+      </button>
+    </div>
+    <div class="up-note" id="upNote"></div>
+  </div>
+
+  <div class="ctrl-step">
+    <div class="step-lbl"><span class="sn">2</span> Field Group &amp; Object Mapping (Bulk Apply)</div>
+    <div class="ctrl-row">
+      <div class="f"><label>Tenant Node</label>
+        <input type="text" id="cTenant" placeholder="_myorg" style="width:100px"></div>
+      <div class="f"><label>Field Group Name</label>
+        <input type="text" id="cFieldGroup" placeholder="e.g. Customer Details FG" style="width:165px"></div>
+      <div class="f"><label>Classification</label>
+        <select id="cFGClass" style="width:95px">
+          <option value="Custom">Custom</option>
+          <option value="OOTB">OOTB</option>
+        </select></div>
+      <div class="f"><label>Object Path</label>
+        <input type="text" id="cObjectPath" placeholder="e.g. customer.data.name" style="width:165px"></div>
+      <div class="f">
+        <label>Is Array?</label>
+        <select id="cArray" style="width:200px" onchange="onArrChange()">
+          <option value=""></option>
+        </select>
+      </div>
+      <div class="f"><label>Identity</label>
+        <select id="cIdentity" style="width:105px">
+          <option value=""></option>
+          <option value="Primary">Primary</option>
+          <option value="Secondary">Secondary</option>
+        </select></div>
+      <button class="btn btn-primary" onclick="applyMapping()">
+        <i class="ti ti-check"></i> Apply to Selected
+      </button>
+    </div>
+    <div class="cfg-ctx none" id="cfgCtx"></div>
+  </div>
+</div>
+
+<!-- STEP 3 TABLE -->
+<div class="tbl-wrap">
+  <div class="tbl-card">
+    <div class="tbl-topbar">
+      <div class="sec-title"><span class="sn">3</span> Mapping Table</div>
+      <div class="tbl-divider"></div>
+      <button class="btn btn-success" onclick="addRow()"><i class="ti ti-row-insert-bottom"></i> Add Row</button>
+      <button class="btn btn-success" onclick="openAddColModal()"><i class="ti ti-column-insert-right"></i> Add Column</button>
+      <button class="btn" onclick="openColPicker()">
+        <i class="ti ti-layout-columns"></i> Show/Hide Columns
+      </button>
+      <button class="btn" id="manageColsBtn" onclick="openManageColsModal()" style="display:none">
+        <i class="ti ti-star"></i> Custom Cols
+        <span id="customColCount" style="font-size:10px;background:#e8d000;color:#5a4a00;border-radius:3px;padding:0 4px;margin-left:2px"></span>
+      </button>
+      <div class="tbl-divider"></div>
+      <button class="btn btn-danger" id="delSelBtn" style="display:none" onclick="deleteSelected()">
+        <i class="ti ti-trash"></i> Delete Selected (<span id="delCount">0</span>)
+      </button>
+      <button class="btn btn-danger" id="clearFiltersBtn" onclick="clearAllFilters()" style="display:none">
+        <i class="ti ti-filter-off"></i> Clear All Filters
+      </button>
+      <span class="tbl-info"><span id="selCount">0</span> selected · <span id="rowCount">0</span> rows</span>
+    </div>
+
+    <div class="tbl-scroll" id="tblScroll">
+      <table class="mt">
+        <thead id="mtHead"></thead>
+        <tbody id="mtBody"></tbody>
+      </table>
+      <div class="empty" id="mtEmpty">
+        <i class="ti ti-table-off"></i>
+        <p>Upload and load a source file,<br>or click <b>Add Row</b> to start manually.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SINGLE pinned horizontal scrollbar -->
+<div class="hbar" id="hbar" onscroll="syncH()">
+  <div class="hbar-inner" id="hbarInner"></div>
+</div>
+<div class="statusbar" id="statusbar"></div>
+
+<!-- ADD COLUMN MODAL -->
+<div class="modal-bg" id="addColModal">
+  <div class="modal">
+    <h3><i class="ti ti-column-insert-right" style="color:#1473e6"></i> Add Custom Column</h3>
+    <div class="mf">
+      <label>Column Name <span style="color:#d23f3f">*</span></label>
+      <input type="text" id="newColName" placeholder="e.g. DULE Labels, Notes, Priority"
+        onkeydown="if(event.key==='Enter')commitAddCol()">
+      <div class="modal-hint">Appears after standard columns. Editable on every row. Included in export.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('addColModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="commitAddCol()"><i class="ti ti-check"></i> Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGE COLUMNS MODAL -->
+<div class="modal-bg" id="manageColsModal">
+  <div class="modal">
+    <h3><i class="ti ti-columns-2" style="color:#1473e6"></i> Custom Columns</h3>
+    <p style="font-size:11px;color:#888;margin-bottom:10px">Click × to remove a column and all its data.</p>
+    <div class="col-tags" id="customColTags"></div>
+    <div class="mf">
+      <label>Add another</label>
+      <div style="display:flex;gap:6px">
+        <input type="text" id="newColName2" placeholder="Column name…" style="flex:1"
+          onkeydown="if(event.key==='Enter')commitAddCol2()">
+        <button class="btn btn-primary" style="height:32px" onclick="commitAddCol2()"><i class="ti ti-plus"></i></button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="closeModal('manageColsModal')">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ─── CONSTANTS ─── */
+const STD_COLS=[
+  "Source Data Column","Source Data Type","Description","Primary/Secondary Identity",
+  "AEP Field Name","AEP Display Name","XDM Column Path","XDM Data Type","Array",
+  "isRequired","Relationship","Field Group Name","Field Group Classification",
+  "Modeling","Pre-transformations Required?","Transformations Desc",
+  "Contract Labels","Identity Labels","Sensitive Labels",
+  "Display Name","Component Type","Attribution Settings",
+  "XDM Script Mixin","XDM Script DULE"
+];
+
+// Exact default visible columns
+const DEFAULT_VISIBLE=new Set([
+  "Source Data Column","Source Data Type","Primary/Secondary Identity",
+  "AEP Field Name","AEP Display Name","XDM Column Path",
+  "XDM Data Type","Array","Field Group Name","Field Group Classification"
+]);
+
+// Currently visible columns — managed by column picker
+let visibleCols=new Set([...DEFAULT_VISIBLE]);
+let filterValues={};   // col -> Set of selected values (OR within col, AND across cols)
+
+function isVisible(c){ return visibleCols.has(c)||customCols.includes(c)&&visibleCols.has(c); }
+function allVisibleCols(){ return [...STD_COLS,...customCols].filter(c=>visibleCols.has(c)); }
+const XDM_TYPES=["string","integer","number","boolean","date","date-time","byte","short","long","float","double","object","array","map","geo-shape","geo-point"];
+const ORD=["1st","2nd","3rd","4th","5th","6th","7th","8th","9th","10th"];
+function ordLabel(n){return(ORD[n]||`${n+1}th`);}
+
+let data=[];          // rows in STABLE original load order — never reordered on selection
+let groupOrder=[];    // ordered list of objectPath keys — updated on Apply (most-recent first)
+let tempWB=null, mode='', jsonRows=[];
+let collapsed={};
+let customCols=[];
+let history=[], redoStack=[];
+let s2Touched=false, prevSelCount=0;
+
+function allCols(){return[...STD_COLS,...customCols];}
+function blankRow(op=''){
+  const row={};allCols().forEach(c=>row[c]='');row.__objectPath=op;row.__arrSeg=null;return row;
+}
+/* ─── COLUMN PICKER ─── */
+function openColPicker(){
+  const all=allCols();
+  const list=document.getElementById('colPickerList');
+  list.innerHTML='';
+  all.forEach(c=>{
+    const lbl=document.createElement('label');
+    lbl.style.cssText='display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;font-size:12px;color:#333';
+    const cb=document.createElement('input');
+    cb.type='checkbox';
+    cb.checked=visibleCols.has(c);
+    cb.style.cssText='width:14px;height:14px;accent-color:#1473e6;flex-shrink:0';
+    cb.addEventListener('change',function(){
+      if(this.checked) visibleCols.add(c); else visibleCols.delete(c);
+      renderTable(); // update table live as each checkbox is toggled
+    });
+    const span=document.createElement('span');
+    span.textContent=c;
+    lbl.appendChild(cb);lbl.appendChild(span);
+    list.appendChild(lbl);
+  });
+  openModal('colPickerModal');
+}
+function toggleCol(c,show){
+  if(show) visibleCols.add(c); else visibleCols.delete(c);
+  renderTable();
+}
+/* toggleCol kept for compatibility */
+function showAllCols(){
+  allCols().forEach(c=>visibleCols.add(c));
+  renderTable();
+  openColPicker();
+}
+function hideAllCols(){
+  visibleCols=new Set([...DEFAULT_VISIBLE]);
+  filterValues={};
+  renderTable();
+  openColPicker();
+}
+
+/* ─── GROUP ORDER ───
+   groupOrder is a list of unique objectPath keys in the order they should be displayed.
+   On load: order = first-seen order of objectPath values.
+   On Apply: the updated objectPath(s) bubble to the TOP of groupOrder.
+   Unassigned rows (empty objectPath = root) always rendered last.
+─── */
+function initGroupOrder(){
+  const seen=new Set();
+  data.forEach(r=>{seen.add(r.__objectPath||'');});
+  groupOrder=[...seen];
+}
+
+function promoteGroups(updatedPaths){
+  // ensure all paths are tracked; sorting happens in buildGroups
+  const known=new Set(groupOrder);
+  updatedPaths.forEach(p=>{if(!known.has(p)){groupOrder.push(p);known.add(p);}});
+  data.forEach(r=>{const k=r.__objectPath||'';if(!known.has(k)){known.add(k);groupOrder.push(k);}});
+}
+
+function hasIdentity(indices){
+  return indices.some(i=>{
+    const v=data[i]&&data[i]["Primary/Secondary Identity"];
+    return v==='Primary'||v==='Secondary';
+  });
+}
+
+function buildGroups(){
+  // build map: path -> row indices (stable original load order within each group)
+  const map={};
+  data.forEach((row,i)=>{
+    const k=row.__objectPath||'';
+    if(!map[k])map[k]=[];
+    map[k].push(i);
+  });
+  const allKeys=Object.keys(map);
+  // 1. Identity groups (contain Primary or Secondary rows) → always first, sorted by path
+  const identityKeys=allKeys.filter(k=>k!==''&&hasIdentity(map[k])).sort((a,b)=>a.localeCompare(b));
+  // 2. Assigned non-root groups → sorted by path so parent appears before child
+  //    customer < customer.person < customer.person.name
+  const assignedKeys=allKeys.filter(k=>k!==''&&!hasIdentity(map[k])).sort((a,b)=>a.localeCompare(b));
+  // 3. Root / no object → always last
+  const rootKeys=allKeys.filter(k=>k==='');
+  const orderedKeys=[...identityKeys,...assignedKeys,...rootKeys];
+  return orderedKeys.filter(k=>map[k]&&map[k].length).map(k=>({key:k,indices:map[k]}));
+}
+
+/* ─── SCROLL SYNC: single hbar only ─── */
+let syncLock=false;
+function syncH(){
+  if(syncLock)return;syncLock=true;
+  document.getElementById('tblScroll').scrollLeft=document.getElementById('hbar').scrollLeft;
+  syncLock=false;
+}
+function updateHbar(){
+  const t=document.getElementById('tblScroll'),i=document.getElementById('hbarInner');
+  if(t&&i)i.style.width=t.scrollWidth+'px';
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('tblScroll').addEventListener('scroll',()=>{
+    if(syncLock)return;syncLock=true;
+    document.getElementById('hbar').scrollLeft=document.getElementById('tblScroll').scrollLeft;
+    syncLock=false;
+  });
+  ['cTenant','cFieldGroup','cFGClass','cObjectPath','cArray','cIdentity'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.addEventListener('input',()=>s2Touched=true);el.addEventListener('change',()=>s2Touched=true);}
+  });
+  refreshArrDropdown();
+});
+
+/* ─── IS ARRAY — context-aware dropdown ─── */
+function getSelectedRows(){
+  return Array.from(document.querySelectorAll('.rc:checked')).map(cb=>data[parseInt(cb.dataset.i)]).filter(Boolean);
+}
+function refreshArrDropdown(){
+  const sel=document.getElementById('cArray');
+  const rows=getSelectedRows();
+  if(!rows.length){
+    sel.disabled=false;
+    sel.innerHTML=`<option value=""></option>
+      <option value="__attr">Attribute (leaf)</option>
+      <option value="__obj_last">Last Object Node</option>`;
+    return;
+  }
+  const paths=new Set(rows.map(r=>r.__objectPath||''));
+  if(paths.size>1){
+    sel.disabled=true;
+    sel.innerHTML=`<option>Multiple object paths — select same path rows</option>`;
+    return;
+  }
+  sel.disabled=false;
+  const sharedPath=[...paths][0];
+  const tenant=document.getElementById('cTenant').value.trim()||extractTenant(rows[0]["XDM Column Path"]);
+  const fgClass=rows[0]["Field Group Classification"]||document.getElementById('cFGClass').value;
+  const segs=[];
+  if(fgClass==='Custom'&&tenant)segs.push(tenant);
+  if(sharedPath)sharedPath.split('.').filter(Boolean).forEach(s=>segs.push(s));
+  let opts=`<option value=""></option>`;
+  segs.forEach((s,idx)=>{opts+=`<option value="${esc(s)}">${ordLabel(idx)} Object (${s})</option>`;});
+  opts+=`<option value="__attr">Attribute (leaf)</option>`;
+  sel.innerHTML=opts;
+  const cur=sel.dataset.current||'';
+  if(cur){const found=[...sel.options].some(o=>o.value===cur);if(found)sel.value=cur;}
+}
+function onArrChange(){document.getElementById('cArray').dataset.current=document.getElementById('cArray').value;}
+
+/* ─── PATH BUILDER ─── */
+function buildPath(tenant,fgClass,objPath,leafName,arrSeg){
+  const segs=[];
+  if(fgClass==='Custom'&&tenant)segs.push(tenant);
+  if(objPath)objPath.split('.').filter(Boolean).forEach(s=>segs.push(s));
+  segs.push(leafName||'');
+  return segs.map((s,i)=>{
+    const isLeaf=i===segs.length-1;
+    if(arrSeg==='__attr'&&isLeaf)return s+'[]';
+    if(arrSeg&&!isLeaf&&s===arrSeg)return s+'[]';
+    return s;
+  }).filter(Boolean).join('.');
+}
+
+/* ─── HISTORY ─── */
+function snap(){return JSON.stringify({data:data.map(r=>({...r})),collapsed,customCols:[...customCols],groupOrder:[...groupOrder],visibleCols:[...visibleCols]});}
+function pushH(){history.push(snap());if(history.length>40)history.shift();redoStack=[];updUR();}
+function restore(s){
+  const p=JSON.parse(s);
+  data=p.data;collapsed=p.collapsed||{};customCols=p.customCols||[];
+  groupOrder=p.groupOrder||[];
+  if(p.visibleCols) visibleCols=new Set(p.visibleCols);
+  renderTable();updUR();
+}
+function undo(){if(!history.length)return;redoStack.push(snap());restore(history.pop());}
+function redo(){if(!redoStack.length)return;history.push(snap());restore(redoStack.pop());}
+function updUR(){
+  document.getElementById('undoBtn').disabled=!history.length;
+  document.getElementById('redoBtn').disabled=!redoStack.length;
+}
+
+/* ─── FILE ─── */
+document.getElementById('fileInput').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const nm=f.name.toLowerCase();const r=new FileReader();
+  r.onload=ev=>{
+    if(nm.endsWith('.json')){
+      mode='json';
+      try{
+        const obj=JSON.parse(ev.target.result);
+        jsonRows=parseXDM(obj);
+        document.getElementById('sheetBox').style.display='none';
+        document.getElementById('loadBtn').style.display='inline-flex';
+        note(`JSON · Tenant: <b>${detectTenant(obj)||'none'}</b> · ${jsonRows.length} fields`);
+      }catch(err){setStatus('Invalid JSON: '+err.message,true);}
+    } else {
+      mode='sheet';
+      tempWB=XLSX.read(ev.target.result,{type:'binary'});
+      document.getElementById('sheetSelect').innerHTML=tempWB.SheetNames.map(n=>`<option>${n}</option>`).join('');
+      document.getElementById('sheetBox').style.display='flex';
+      document.getElementById('loadBtn').style.display='inline-flex';
+      note('Spreadsheet ready — choose a sheet and click Load');
+    }
+  };
+  if(nm.endsWith('.json'))r.readAsText(f);else r.readAsBinaryString(f);
+});
+
+function detectTenant(obj){
+  for(const k in obj)
+    if(k.startsWith('_')&&k!=='_id'&&k!=='_repo'&&obj[k]&&typeof obj[k]==='object'&&!Array.isArray(obj[k]))return k;
+  return null;
+}
+function inferType(v){
+  if(typeof v==='boolean')return 'boolean';
+  if(typeof v==='number')return Number.isInteger(v)?'integer':'number';
+  if(typeof v==='string'){if(/^\d{4}-\d{2}-\d{2}T/.test(v))return 'date-time';if(/^\d{4}-\d{2}-\d{2}$/.test(v))return 'date';}
+  return 'string';
+}
+function parseXDM(obj){
+  const tenant=detectTenant(obj);const out=[];
+  function walk(node,parts,arrAncSeg){
+    if(Array.isArray(node)){
+      if(node.length&&typeof node[0]==='object'&&!Array.isArray(node[0]))walk(node[0],parts,parts[parts.length-1]);
+      else out.push(makeRow(parts.join('.'),tenant,node.length?inferType(node[0]):'string',parts[parts.length-1]));
+      return;
+    }
+    if(node&&typeof node==='object'){for(const k in node)walk(node[k],parts.concat(k),arrAncSeg);return;}
+    out.push(makeRow(parts.join('.'),tenant,inferType(node),arrAncSeg||null));
+  }
+  walk(obj,[],null);return out;
+}
+function makeRow(fullPath,tenant,type,arrSeg){
+  const parts=fullPath.split('.');const leaf=parts[parts.length-1];
+  const underTenant=tenant&&parts[0]===tenant;
+  const objParts=underTenant?parts.slice(1,-1):parts.slice(0,-1);
+  const row=blankRow(objParts.join('.'));
+  row["Source Data Column"]=leaf;
+  row["Source Data Type"]=type;row["XDM Data Type"]=type;
+  row["AEP Field Name"]=toCamel(leaf);
+  row["AEP Display Name"]=toDisplayName(leaf);
+  row["XDM Column Path"]=fullPath;
+  row["Field Group Classification"]=underTenant?'Custom':'OOTB';
+  row.__arrSeg=arrSeg||null;
+  row["Array"]=arrSeg?arrSeg+'[]':'';
+  return row;
+}
+
+function toCamel(s){
+  s=(s||'').toString().trim();
+  const p=s.split(/[^a-zA-Z0-9]+/).filter(Boolean);
+  if(!p.length)return s.toLowerCase();
+  return p.map((x,i)=>{x=x.toLowerCase();return i===0?x:x.charAt(0).toUpperCase()+x.slice(1);}).join('');
+}
+function toDisplayName(s){
+  return(s||'').toString().trim()
+    .replace(/_/g,' ').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/([A-Z]+)([A-Z][a-z])/g,'$1 $2')
+    .toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()).trim();
+}
+function enforceCamel(i,el){
+  const camel=toCamel(el.innerText);
+  if(el.innerText.trim()!==camel)el.innerText=camel;
+  editCell(i,'AEP Field Name',camel);
+}
+
+function loadData(){
+  pushH();collapsed={};s2Touched=false;prevSelCount=0;
+  if(mode==='json'){
+    data=jsonRows.map(r=>({...r}));
+    data.forEach(r=>customCols.forEach(c=>{if(r[c]===undefined)r[c]='';}));
+    setStatus(`Loaded ${data.length} fields from XDM JSON.`);
+  } else {
+    if(!tempWB){history.pop();updUR();return;}
+    const sheet=tempWB.Sheets[document.getElementById('sheetSelect').value];
+    const raw=XLSX.utils.sheet_to_json(sheet,{defval:""});
+    if(!raw.length){setStatus('Sheet is empty',true);history.pop();updUR();return;}
+    const keys=Object.keys(raw[0]);
+    const find=a=>keys.find(k=>a.includes(k.trim().toLowerCase()));
+    const colKey=find(['source data column','source column','source','column name','field name','column','attribute'])||keys[0];
+    const typeKey=find(['source data type','data type','type','datatype']);
+    const descKey=find(['description','desc','definition','business definition']);
+    data=raw.map(r=>{
+      const src=(r[colKey]||'').toString();if(!src.trim())return null;
+      const row=blankRow('');
+      row["Source Data Column"]=src;
+      row["Source Data Type"]=typeKey?(r[typeKey]||'string'):'string';
+      row["XDM Data Type"]=row["Source Data Type"];
+      row["Description"]=descKey?(r[descKey]||''):'';
+      row["AEP Field Name"]=toCamel(src);
+      row["AEP Display Name"]=toDisplayName(src);
+      return row;
+    }).filter(Boolean);
+    setStatus(`Loaded ${data.length} columns.`);
+  }
+  filterValues={}; // clear filters on new load
+  initGroupOrder();
+  renderTable();
+}
+
+/* ─── ADD ROW ─── */
+function addRow(op){
+  pushH();
+  let path=op||'';
+  if(!path){
+    const checked=Array.from(document.querySelectorAll('.rc:checked'));
+    if(checked.length)path=data[parseInt(checked[checked.length-1].dataset.i)].__objectPath||'';
+  }
+  const row=blankRow(path);
+  if(path){
+    let last=-1;data.forEach((r,i)=>{if(r.__objectPath===path)last=i;});
+    if(last>=0)data.splice(last+1,0,row);else data.push(row);
+  } else data.push(row);
+  // ensure group order knows about this path
+  if(path&&!groupOrder.includes(path))groupOrder.push(path);
+  if(!path&&!groupOrder.includes(''))groupOrder.push('');
+  renderTable();setStatus('Blank row added — all cells are editable.');
+  if(!path)setTimeout(()=>{const w=document.getElementById('tblScroll');if(w)w.scrollTop=w.scrollHeight;},60);
+}
+
+/* ─── COLUMNS ─── */
+function openAddColModal(){document.getElementById('newColName').value='';openModal('addColModal');setTimeout(()=>document.getElementById('newColName').focus(),80);}
+function commitAddCol(){
+  const name=document.getElementById('newColName').value.trim();
+  if(!name){setStatus('Name required',true);return;}
+  if(allCols().map(c=>c.toLowerCase()).includes(name.toLowerCase())){setStatus(`"${name}" already exists`,true);return;}
+  pushH();customCols.push(name);data.forEach(r=>r[name]='');
+  visibleCols.add(name);
+  closeModal('addColModal');renderTable();setStatus(`Column "${name}" added.`);
+}
+function openManageColsModal(){renderColTags();document.getElementById('newColName2').value='';openModal('manageColsModal');}
+function renderColTags(){
+  document.getElementById('customColTags').innerHTML=customCols.length
+    ?customCols.map(c=>`<span class="col-tag">${c}<span class="col-tag-x" onclick="removeCol('${c.replace(/'/g,"\\'")}')">×</span></span>`).join('')
+    :'<span style="font-size:11px;color:#aaa">No custom columns yet.</span>';
+}
+function commitAddCol2(){
+  const name=document.getElementById('newColName2').value.trim();if(!name)return;
+  if(allCols().map(c=>c.toLowerCase()).includes(name.toLowerCase())){setStatus(`"${name}" already exists`,true);return;}
+  pushH();customCols.push(name);data.forEach(r=>r[name]='');
+  visibleCols.add(name);
+  document.getElementById('newColName2').value='';renderTable();renderColTags();setStatus(`Column "${name}" added.`);
+}
+function removeCol(name){
+  if(!confirm(`Remove "${name}" and all its data?`))return;
+  pushH();customCols=customCols.filter(c=>c!==name);data.forEach(r=>delete r[name]);
+  visibleCols.delete(name);
+  renderTable();renderColTags();setStatus(`Column "${name}" removed.`);
+}
+
+/* ─── APPLY ─── */
+function applyMapping(){
+  const sel=Array.from(document.querySelectorAll('.rc:checked')).map(cb=>parseInt(cb.dataset.i));
+  if(!sel.length){setStatus('No rows selected.',true);return;}
+  pushH();
+  const tenant=document.getElementById('cTenant').value.trim();
+  const fg=document.getElementById('cFieldGroup').value.trim();
+  const fgClass=document.getElementById('cFGClass').value;
+  const objPath=document.getElementById('cObjectPath').value.trim();
+  const arrSel=document.getElementById('cArray');
+  const arrSeg=arrSel.disabled?null:(arrSel.value||null);
+  const identity=document.getElementById('cIdentity').value;
+
+  if(identity==='Primary')
+    data.forEach(r=>{if(r["Primary/Secondary Identity"]==='Primary')r["Primary/Secondary Identity"]='';});
+
+  const updatedPaths=new Set();
+  sel.forEach((i,idx)=>{
+    const row=data[i];
+    if(fg)row["Field Group Name"]=fg;
+    row["Field Group Classification"]=fgClass;
+    const oldPath=row.__objectPath;
+    row.__objectPath=objPath;
+    row.__arrSeg=arrSeg;
+    row["Array"]=arrSeg?(arrSeg==='__attr'?`${row["AEP Field Name"]}[]`:`${arrSeg}[]`):'';
+    if(identity==='Primary')row["Primary/Secondary Identity"]=idx===0?'Primary':'Secondary';
+    else if(identity)row["Primary/Secondary Identity"]=identity;
+    row["XDM Column Path"]=buildPath(tenant,fgClass,objPath,row["AEP Field Name"]||'',arrSeg);
+    if(objPath)updatedPaths.add(objPath);
+    // if old path group is now empty, don't remove it from groupOrder — it will just have 0 items
+  });
+
+  // promote updated groups to top
+  if(updatedPaths.size>0)promoteGroups([...updatedPaths]);
+  // ensure new paths are in groupOrder
+  updatedPaths.forEach(p=>{if(!groupOrder.includes(p))groupOrder.unshift(p);});
+
+  renderTable();setStatus(`Applied to ${sel.length} row(s).`);
+}
+
+/* ─── DELETE ─── */
+function deleteRow(i){pushH();data.splice(i,1);renderTable();setStatus('Row deleted.');}
+function deleteSelected(){
+  const sel=Array.from(document.querySelectorAll('.rc:checked')).map(cb=>parseInt(cb.dataset.i));
+  if(!sel.length)return;
+  if(!confirm(`Delete ${sel.length} row${sel.length>1?'s':''}?`))return;
+  pushH();sel.sort((a,b)=>b-a).forEach(i=>data.splice(i,1));
+  renderTable();setStatus(`Deleted ${sel.length} row${sel.length>1?'s':''}.`);
+}
+
+/* ─── FILTER ─── */
+
+
+
+/* ─── COLUMN HEADER FILTER DROPDOWN ─── */
+let _activeFilterDropdown=null;
+
+function openColFilter(evt,col){
+  // if already open for this col, close it
+  if(_activeFilterDropdown&&_activeFilterDropdown.dataset.col===col){
+    closeColFilter();return;
+  }
+  closeColFilter();
+  const th=evt.currentTarget;
+  const rect=th.getBoundingClientRect();
+
+  // unique values from rows surviving all OTHER active filters (drill-down)
+  const sorted=uniqueVals(col);
+
+  const selected=filterValues[col]||new Set();
+
+  const dd=document.createElement('div');
+  dd.className='col-filter-dropdown';
+  dd.dataset.col=col;
+  dd.style.top=(rect.bottom+2)+'px';
+  dd.style.left=rect.left+'px';
+
+  // header row
+  const hdr=document.createElement('div');
+  hdr.style.cssText='padding:6px 10px 4px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f0f0;gap:8px';
+  const colLabel=document.createElement('span');
+  colLabel.style.cssText='font-size:11px;font-weight:600;color:#555;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+  colLabel.textContent=col;
+  const clearBtn=document.createElement('span');
+  clearBtn.style.cssText='font-size:10px;color:#1473e6;cursor:pointer;flex-shrink:0';
+  clearBtn.textContent='Clear';
+  clearBtn.onclick=()=>{setFilter(col,'');renderDropdownItems();};
+  hdr.appendChild(colLabel);hdr.appendChild(clearBtn);
+  dd.appendChild(hdr);
+
+  // search box
+  const searchWrap=document.createElement('div');
+  searchWrap.style.cssText='padding:6px 10px;border-bottom:1px solid #f0f0f0;';
+  const searchInp=document.createElement('input');
+  searchInp.type='text';
+  searchInp.placeholder='Search values…';
+  searchInp.style.cssText='width:100%;border:1px solid #ccc;border-radius:5px;padding:5px 8px;font-size:11px;font-family:inherit;outline:none;height:28px;';
+  searchInp.addEventListener('focus',()=>searchInp.style.borderColor='#1473e6');
+  searchInp.addEventListener('blur',()=>searchInp.style.borderColor='#ccc');
+  searchInp.addEventListener('input',()=>renderDropdownItems(searchInp.value.toLowerCase().trim()));
+  searchWrap.appendChild(searchInp);
+  dd.appendChild(searchWrap);
+
+  // item list container
+  const list=document.createElement('div');
+  list.style.cssText='max-height:200px;overflow-y:auto;';
+  dd.appendChild(list);
+
+  // footer
+  const footer=document.createElement('div');
+  footer.style.cssText='padding:5px 10px;border-top:1px solid #f0f0f0;font-size:10px;color:#888;display:flex;align-items:center;justify-content:space-between;gap:8px';
+  dd.appendChild(footer);
+
+  function renderDropdownItems(search=''){
+    const cur=filterValues[col]||new Set();
+    // filter sorted by search term
+    const filtered=search?sorted.filter(v=>v.toLowerCase().includes(search)):sorted;
+    list.innerHTML='';
+
+    if(!search){
+      // Show all option — only when not searching
+      const showAll=document.createElement('label');
+      showAll.className='col-flt-item col-flt-chk';
+      showAll.innerHTML=`<input type="checkbox" ${cur.size===0?'checked':''} style="accent-color:#1473e6;margin-right:8px;width:13px;height:13px;flex-shrink:0">
+        <span style="font-style:italic;color:#999">(Show all)</span>`;
+      showAll.querySelector('input').addEventListener('change',()=>{setFilter(col,'');renderDropdownItems(search);});
+      list.appendChild(showAll);
+    }
+
+    filtered.forEach(v=>{
+      const lbl=document.createElement('label');
+      lbl.className='col-flt-item col-flt-chk'+(cur.has(v)?' selected':'');
+      lbl.title=v;
+      // highlight matching part
+            const escaped=search?search.replace(/[-.*+?^${}()|[\]\\]/g,'\\$&'):'';
+      const hl=(search&&escaped)?v.replace(new RegExp('('+escaped+')','gi'),'<mark style="background:#fff3c4;border-radius:2px">$1</mark>'):v;
+      lbl.innerHTML=`<input type="checkbox" ${cur.has(v)?'checked':''} style="accent-color:#1473e6;margin-right:8px;width:13px;height:13px;flex-shrink:0">
+        <span style="overflow:hidden;text-overflow:ellipsis">${hl}</span>`;
+      lbl.querySelector('input').addEventListener('change',()=>{setFilter(col,v);renderDropdownItems(search);});
+      list.appendChild(lbl);
+    });
+
+    if(!filtered.length){
+      const empty=document.createElement('div');
+      empty.style.cssText='padding:10px 12px;color:#aaa;font-size:11px;text-align:center;';
+      empty.textContent='No matching values';
+      list.appendChild(empty);
+    }
+
+    // footer: count + select-all-matching button
+    const active=filterValues[col];
+    const selCount=active&&active.size>0?`${active.size} selected`:'None selected';
+    footer.innerHTML='';
+    const countSpan=document.createElement('span');
+    countSpan.textContent=selCount;
+    footer.appendChild(countSpan);
+    if(filtered.length>0){
+      const selAll=document.createElement('span');
+      selAll.style.cssText='color:#1473e6;cursor:pointer;font-weight:500';
+      // check if all filtered are already selected
+      const allSel=filtered.every(v=>(filterValues[col]||new Set()).has(v));
+      selAll.textContent=allSel?'Deselect matching':'Select all matching';
+      selAll.onclick=()=>{
+        if(allSel){filtered.forEach(v=>setFilter(col,v));}
+        else{filtered.forEach(v=>{if(!(filterValues[col]||new Set()).has(v))setFilter(col,v);});}
+        renderDropdownItems(search);
+      };
+      footer.appendChild(selAll);
+    }
+  }
+
+  renderDropdownItems();
+  document.body.appendChild(dd);
+  _activeFilterDropdown=dd;
+
+  // focus search input
+  setTimeout(()=>searchInp.focus(),30);
+
+  // position: flip up if near bottom of screen
+  const ddRect=dd.getBoundingClientRect();
+  if(ddRect.bottom>window.innerHeight-20){
+    dd.style.top=(rect.top-ddRect.height-2)+'px';
+  }
+
+  // close on outside click (but not clicks inside dropdown)
+  setTimeout(()=>{
+    function outsideClick(e){
+      if(!dd.contains(e.target)){closeColFilter();document.removeEventListener('click',outsideClick);}
+    }
+    document.addEventListener('click',outsideClick);
+  },10);
+}
+
+function closeColFilter(){
+  if(_activeFilterDropdown){_activeFilterDropdown.remove();_activeFilterDropdown=null;}
+}
+
+function clearAllFilters(){
+  filterValues={};
+  closeColFilter();
+  renderTable();
+}
+
+function setFilter(col,val,multi=false){
+  // val='' means clear all for this col
+  if(val===''||val===null||val===undefined){
+    delete filterValues[col];
+  } else {
+    if(!filterValues[col]) filterValues[col]=new Set();
+    if(filterValues[col].has(val)) filterValues[col].delete(val);
+    else filterValues[col].add(val);
+    if(filterValues[col].size===0) delete filterValues[col];
+  }
+  renderTable();
+}
+
+function rowMatchesFilters(row){
+  for(const col in filterValues){
+    const fv=filterValues[col]; // Set of selected values
+    if(!fv||!fv.size) continue;
+    const rv=(row[col]||'').toString().trim();
+    // OR logic: row value must match at least one selected value
+    if(![...fv].some(sel=>rv===sel)) return false;
+  }
+  return true;
+}
+
+function hasActiveFilters(){
+  return Object.keys(filterValues).some(k=>filterValues[k]&&filterValues[k].size>0);
+}
+
+// Collect unique values for a column (for dropdown filter)
+const DROPDOWN_FILTER_COLS=new Set([
+  "Primary/Secondary Identity","Array","isRequired",
+  "Field Group Classification","XDM Data Type","Field Group Name"
+]);
+
+// Context-aware: collect unique values for col from rows that match
+// all OTHER active filters (excluding col's own filter)
+function uniqueVals(col){
+  const vals=new Set();
+  data.forEach(r=>{
+    // check all filters EXCEPT the one for this column
+    let match=true;
+    for(const fc in filterValues){
+      if(fc===col) continue; // skip own filter
+      const fv=filterValues[fc];
+      if(!fv||!fv.size) continue;
+      const rv=(r[fc]||'').toString().trim();
+      if(![...fv].some(sel=>rv===sel)){match=false;break;}
+    }
+    if(match){
+      const v=(r[col]||'').toString().trim();
+      if(v) vals.add(v);
+    }
+  });
+  return [...vals].sort();
+}
+
+/* ─── RENDER ─── */
+function renderTable(){
+  const cols=allVisibleCols();
+  const hasData=data.length>0;
+  document.getElementById('mtEmpty').style.display=hasData?'none':'flex';
+  const filteredCount=hasActiveFilters()?data.filter(r=>rowMatchesFilters(r)).length:data.length;
+  document.getElementById('rowCount').textContent=hasActiveFilters()?`${filteredCount} of ${data.length} (filtered)`:data.length;
+  const cfBtn=document.getElementById('clearFiltersBtn');
+  if(cfBtn) cfBtn.style.display=hasActiveFilters()?'inline-flex':'none';
+  const totalCols=cols.length+2;
+  prevSelCount=0;
+  document.getElementById('manageColsBtn').style.display=customCols.length?'inline-flex':'none';
+  document.getElementById('customColCount').textContent=customCols.length||'';
+
+  /* THEAD — column name + ⌄ arrow, click opens value-picker dropdown */
+  const _flt=filterValues;
+  document.getElementById('mtHead').innerHTML=`<tr>
+    <th class="tdchk"><input type="checkbox" onclick="toggleAll(this)"></th>
+    ${cols.map(c=>{
+      const isCC=customCols.includes(c);
+      const star=isCC?'<i class="ti ti-star" style="font-size:10px;margin-right:3px;color:#c8a800"></i>':'';
+      const activeFlt=_flt[c]&&_flt[c].size>0;
+      const activeCount=activeFlt?_flt[c].size:0;
+      const thStyle=activeFlt?'background:#eef5ff;':'';
+      const filterBadge=activeFlt
+        ?`<span class="flt-badge" title="${activeCount} filter${activeCount>1?'s':''} applied">${activeCount}</span>`
+        :'';
+      return `<th ${isCC?'class="custom-col"':''} style="${thStyle}">
+        <div class="th-wrap" onclick="openColFilter(event,'${c.replace(/'/g,"\'")}')">
+          ${star}${c}${filterBadge}&nbsp;<span class="th-arr" style="${activeFlt?'color:#1473e6':''}">&#8964;</span>
+        </div>
+      </th>`;
+    }).join('')}
+    <th class="tddel" style="position:sticky;right:0;z-index:21;background:#f0f0f0;min-width:30px"></th>
+  </tr>`;
+  /* TBODY — render groups in groupOrder, data rows stay in their original index order within each group */
+  const groups=buildGroups();
+  let html='';
+  groups.forEach(g=>{
+    if(!g.indices.length)return; // skip empty groups
+    const label=g.key||'(root / no object)';
+    const isCol=!!collapsed[g.key];
+    html+=`<tr class="grp-row"><td colspan="${totalCols}"><div class="grp-band">
+      <i class="ti ti-chevron-${isCol?'right':'down'} grp-chev" onclick="toggleGroup('${esc(g.key)}')"></i>
+      <input type="checkbox" class="grp-chk" onclick="toggleGroupRows('${esc(g.key)}',this)">
+      <i class="ti ti-box grp-ico"></i>
+      <span class="grp-label">${label}</span>
+      <span class="grp-tag">object</span>
+      <span class="grp-count">${g.indices.length} attribute${g.indices.length!==1?'s':''}</span>
+      <button class="grp-add" onclick="event.stopPropagation();addRow('${esc(g.key)}')">
+        <i class="ti ti-plus"></i> Add row here
+      </button>
+    </div></td></tr>`;
+    // apply filters — only show rows that match ALL active filters
+    const visibleIndices=isCol?[]:g.indices.filter(i=>rowMatchesFilters(data[i]));
+    if(isCol||!visibleIndices.length){
+      // if collapsed or no matching rows, hide the group entirely when filters active
+      if(hasActiveFilters()&&!isCol&&!visibleIndices.length) return;
+      if(isCol) return;
+    }
+
+    visibleIndices.forEach(i=>{
+      const row=data[i];
+      const idVal=row["Primary/Secondary Identity"]||'';
+      html+=`<tr class="arow" data-grp="${esc(g.key)}">
+        <td class="tdchk"><input type="checkbox" class="rc" data-i="${i}" onchange="onRowCheck(this)"></td>
+        ${cols.map((c,ci)=>{
+          const val=row[c]||'';
+          const isCC=customCols.includes(c);
+          const td=isCC?'cc':'';
+
+          /* Primary/Secondary Identity — badge when set (click to edit), dropdown when blank */
+          if(c==="Primary/Secondary Identity"){
+            if(idVal==='Primary'){
+              return `<td class="${td}" title="Click to change identity">
+                <span class="id-badge id-primary" onclick="openIdentityEdit(${i},this)">Primary</span>
+              </td>`;
+            }
+            if(idVal==='Secondary'){
+              return `<td class="${td}" title="Click to change identity">
+                <span class="id-badge id-secondary" onclick="openIdentityEdit(${i},this)">Secondary</span>
+              </td>`;
+            }
+            // blank — show dropdown
+            return `<td class="${td}">
+              <select class="isel" onchange="cellIdentityChange(${i},this)">
+                <option value=""></option>
+                <option value="Primary">Primary</option>
+                <option value="Secondary">Secondary</option>
+              </select>
+            </td>`;
+          }
+
+          /* Array — per-row always-visible select with path-based segment options */
+          if(c==="Array"){
+            const fgCls=row["Field Group Classification"]||'Custom';
+            const tenant=extractTenant(row["XDM Column Path"])||document.getElementById('cTenant').value.trim();
+            const segs=[];
+            if(fgCls==='Custom'&&tenant)segs.push(tenant);
+            if(row.__objectPath)row.__objectPath.split('.').filter(Boolean).forEach(s=>segs.push(s));
+            const leafName=row["AEP Field Name"]||'';
+            let opts=`<option value="" ${!row.__arrSeg?'selected':''}></option>`;
+            segs.forEach((s,idx)=>{opts+=`<option value="${esc(s)}" ${row.__arrSeg===s?'selected':''}>${ordLabel(idx)} Object (${s})</option>`;});
+            opts+=`<option value="__attr" ${row.__arrSeg==='__attr'?'selected':''}>Attribute (${leafName||'leaf'})</option>`;
+            return `<td class="${td}"><select class="isel" onchange="cellArrChange(${i},this)">${opts}</select></td>`;
+          }
+
+          /* isRequired */
+          if(c==="isRequired"){
+            return `<td class="${td}"><select class="isel" onchange="cellSelChange(${i},'isRequired',this)">
+              <option value="" ${!val?'selected':''}></option>
+              <option value="Yes" ${val==='Yes'?'selected':''}>Yes</option>
+              <option value="No" ${val==='No'?'selected':''}>No</option>
+            </select></td>`;
+          }
+
+          /* Field Group Classification */
+          if(c==="Field Group Classification"){
+            return `<td class="${td}"><select class="isel" onchange="cellSelChange(${i},'Field Group Classification',this)">
+              <option value="" ${!val?'selected':''}></option>
+              <option value="Custom" ${val==='Custom'?'selected':''}>Custom</option>
+              <option value="OOTB" ${val==='OOTB'?'selected':''}>OOTB</option>
+            </select></td>`;
+          }
+
+          /* XDM Data Type — full AEP list */
+          if(c==="XDM Data Type"){
+            const opts=XDM_TYPES.map(t=>`<option value="${t}" ${t===val?'selected':''}>${t}</option>`).join('');
+            return `<td class="${td}"><select class="isel" onchange="cellSelChange(${i},'XDM Data Type',this)">
+              <option value=""></option>${opts}
+            </select></td>`;
+          }
+
+          /* XDM Column Path — monospace editable */
+          if(c==="XDM Column Path"){
+            return `<td class="${td}">
+              <div class="ce tdpath" contenteditable="true"
+                onblur="editCell(${i},'XDM Column Path',this.innerText.trim())">${val}</div>
+            </td>`;
+          }
+
+          /* AEP Field Name — camelCase enforced */
+          if(c==="AEP Field Name"){
+            return `<td class="${td}">
+              <div class="ce" contenteditable="true" title="Auto-converts to camelCase"
+                onblur="enforceCamel(${i},this)">${val}</div>
+            </td>`;
+          }
+
+          /* AEP Display Name — free label */
+          if(c==="AEP Display Name"){
+            return `<td class="${td}">
+              <div class="ce" contenteditable="true"
+                onblur="editCell(${i},'AEP Display Name',this.innerText.trim())">${val}</div>
+            </td>`;
+          }
+
+          /* All other columns */
+          return `<td class="${td}">
+            <div class="ce" contenteditable="true"
+              onblur="editCell(${i},'${c.replace(/'/g,"\\'")}',this.innerText.trim())">${val}</div>
+          </td>`;
+        }).join('')}
+        <td class="tddel"><button class="del-row-btn" onclick="deleteRow(${i})"><i class="ti ti-x"></i></button></td>
+      </tr>`;
+    });
+  });
+
+  document.getElementById('mtBody').innerHTML=html;
+  setTimeout(updateHbar,40);
+  updSel();updateCtxStrip();
+}
+
+/* ─── CELL HANDLERS ─── */
+/* Click badge → replace with inline select so user can change or clear */
+function openIdentityEdit(i,td){
+  const row=data[i];if(!row)return;
+  const cur=row["Primary/Secondary Identity"]||'';
+  td.outerHTML=`<select class="isel" onchange="cellIdentityChange(${i},this)" onblur="renderTable()">
+    <option value=""></option>
+    <option value="Primary" ${cur==='Primary'?'selected':''}>Primary</option>
+    <option value="Secondary" ${cur==='Secondary'?'selected':''}>Secondary</option>
+  </select>`;
+}
+function cellIdentityChange(i,el){
+  const val=el.value;if(!data[i])return;
+  pushH();
+  if(val==='Primary')data.forEach(r=>{if(r["Primary/Secondary Identity"]==='Primary')r["Primary/Secondary Identity"]='';});
+  data[i]["Primary/Secondary Identity"]=val;
+  renderTable();
+}
+function cellArrChange(i,el){
+  const val=el.value;if(!data[i])return;
+  pushH();
+  const row=data[i];
+  row.__arrSeg=val||null;
+  row["Array"]=val?(val==='__attr'?`${row["AEP Field Name"]}[]`:`${val}[]`):'';
+  const tenant=extractTenant(row["XDM Column Path"])||document.getElementById('cTenant').value.trim();
+  row["XDM Column Path"]=buildPath(tenant,row["Field Group Classification"],row.__objectPath,row["AEP Field Name"],val||null);
+  renderTable();
+}
+function cellSelChange(i,col,el){
+  const val=el.value;if(!data[i])return;
+  pushH();data[i][col]=val;renderTable();
+}
+function editCell(i,col,val){
+  if(!data[i]||data[i][col]===val)return;
+  pushH();data[i][col]=val;
+  if(col==="AEP Field Name"){
+    const tenant=document.getElementById('cTenant').value.trim()||extractTenant(data[i]["XDM Column Path"]);
+    data[i]["XDM Column Path"]=buildPath(tenant,data[i]["Field Group Classification"],data[i].__objectPath,val,data[i].__arrSeg);
+    renderTable();
+  }
+}
+
+/* ─── SELECTION ─── */
+function esc(s){return(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');}
+function toggleGroup(key){collapsed[key]=!collapsed[key];renderTable();}
+function toggleGroupRows(key,cb){
+  document.querySelectorAll(`.arow[data-grp="${CSS.escape(key)}"] .rc`).forEach(x=>{
+    x.checked=cb.checked;x.closest('tr').classList.toggle('sel',cb.checked);
+  });
+  prevSelCount=document.querySelectorAll('.rc:checked').length;
+  updSel();updateCtxStrip();refreshArrDropdown();
+}
+function toggleAll(src){
+  document.querySelectorAll('.rc').forEach(cb=>{
+    cb.checked=src.checked;cb.closest('tr').classList.toggle('sel',src.checked);
+  });
+  prevSelCount=document.querySelectorAll('.rc:checked').length;
+  updSel();updateCtxStrip();refreshArrDropdown();
+}
+function updSel(){
+  const n=document.querySelectorAll('.rc:checked').length;
+  document.getElementById('selCount').textContent=n;
+  document.getElementById('delCount').textContent=n;
+  document.getElementById('delSelBtn').style.display=n>0?'inline-flex':'none';
+}
+
+function s2IsBlank(){
+  return!document.getElementById('cTenant').value.trim()
+    &&!document.getElementById('cFieldGroup').value.trim()
+    &&!document.getElementById('cObjectPath').value.trim()
+    &&document.getElementById('cIdentity').value==='';
+}
+function extractTenant(path){if(!path)return'';const f=(path||'').split('.')[0];return f.startsWith('_')?f:'';}
+
+function loadFromRow(idx){
+  const row=data[idx];if(!row)return;
+  const t=extractTenant(row["XDM Column Path"]);
+  if(t)document.getElementById('cTenant').value=t;
+  document.getElementById('cFieldGroup').value=row["Field Group Name"]||'';
+  document.getElementById('cFGClass').value=row["Field Group Classification"]||'Custom';
+  document.getElementById('cObjectPath').value=row.__objectPath||'';
+  const idv=row["Primary/Secondary Identity"]||'';
+  document.getElementById('cIdentity').value=['Primary','Secondary'].includes(idv)?idv:'';
+  s2Touched=false;refreshArrDropdown();updateCtxStrip();
+}
+
+function onRowCheck(cb){
+  cb.closest('tr').classList.toggle('sel',cb.checked);
+  const cur=document.querySelectorAll('.rc:checked').length;
+  if(cur===1&&prevSelCount===0&&!s2Touched&&s2IsBlank())loadFromRow(parseInt(cb.dataset.i));
+  prevSelCount=cur;updSel();updateCtxStrip();refreshArrDropdown();
+}
+
+function updateCtxStrip(){
+  const checked=Array.from(document.querySelectorAll('.rc:checked'));
+  const ctx=document.getElementById('cfgCtx');
+  if(!checked.length){ctx.className='cfg-ctx none';ctx.innerHTML='';return;}
+  const fi=parseInt(checked[0].dataset.i);const fr=data[fi];
+  const paths=new Set(checked.map(cb=>data[parseInt(cb.dataset.i)].__objectPath||''));
+  const ll=`<span class="load-link" onclick="loadFromRow(${fi})">↑ Load into controls</span>`;
+  if(checked.length===1)
+    {ctx.className='cfg-ctx single';ctx.innerHTML=`<i class="ti ti-info-circle"></i> Selected: <b>${fr["Source Data Column"]||'(blank row)'}</b> ${ll}`;}
+  else if(paths.size===1)
+    {ctx.className='cfg-ctx single';ctx.innerHTML=`<i class="ti ti-info-circle"></i> ${checked.length} rows · same object path ${ll}`;}
+  else
+    {ctx.className='cfg-ctx mixed';ctx.innerHTML=`<i class="ti ti-alert-triangle"></i> ${checked.length} rows · multiple object paths — Apply updates all. ${ll}`;}
+}
+
+/* ─── MODALS / UTILS ─── */
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function note(msg){document.getElementById('upNote').innerHTML=msg||'';}
+function setStatus(msg,err){
+  const el=document.getElementById('statusbar');el.textContent=msg;el.className='statusbar'+(err?' err':'');
+  if(msg)setTimeout(()=>{if(el.textContent===msg)el.textContent='';},4000);
+}
+function clearAll(){
+  if(!confirm('Clear everything?'))return;
+  pushH();data=[];collapsed={};customCols=[];groupOrder=[];s2Touched=false;prevSelCount=0;
+  visibleCols=new Set([...DEFAULT_VISIBLE]);
+  filterValues={};
+  renderTable();setStatus('');note('');
+  document.getElementById('fileInput').value='';
+  document.getElementById('sheetBox').style.display='none';
+  document.getElementById('loadBtn').style.display='none';
+  document.getElementById('cfgCtx').className='cfg-ctx none';
+  document.getElementById('cfgCtx').innerHTML='';
+  refreshArrDropdown();
+}
+
+renderTable();updUR();
+window.addEventListener('resize',updateHbar);
+</script>
+
+<!-- COLUMN PICKER MODAL -->
+<div class="modal-bg" id="colPickerModal">
+  <div class="modal" style="width:460px;max-height:80vh;display:flex;flex-direction:column">
+    <h3><i class="ti ti-layout-columns" style="color:#1473e6"></i> Show / Hide Columns</h3>
+    <p style="font-size:11px;color:#888;margin-bottom:10px">
+      Choose which columns to display. Hidden columns are preserved in your data and included in exports.
+      Column order never changes.
+    </p>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button class="btn btn-primary" style="height:28px;font-size:11px" onclick="showAllCols()">
+        <i class="ti ti-eye"></i> Show All
+      </button>
+      <button class="btn" style="height:28px;font-size:11px" onclick="hideAllCols()">
+        <i class="ti ti-eye-off"></i> Default View
+      </button>
+    </div>
+    <div id="colPickerList" style="flex:1;overflow-y:auto;padding-right:4px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="closeModal('colPickerModal')">Done</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
