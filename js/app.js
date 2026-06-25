@@ -450,6 +450,11 @@ function note(msg){document.getElementById('upNote').innerHTML=msg||'';}
 function clearAll(){
   if(!confirm('Clear everything?'))return;
   pushH();data=[];collapsed={};customCols=[];groupOrder=[];s2Touched=false;prevSelCount=0;
+  document.getElementById('cTenant').value='';
+  document.getElementById('cFieldGroup').value='';
+  document.getElementById('cFGClass').value='Custom';
+  document.getElementById('cObjectPath').value='';
+  document.getElementById('cIdentity').value='';
   visibleCols=new Set([...DEFAULT_VISIBLE]);
   filterValues={};
   renderTable();setStatus('');note('');
