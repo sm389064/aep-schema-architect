@@ -256,9 +256,12 @@ function applyMapping(){
     row.__objectPath=objPath;
     row.__arrSeg=arrSeg;
     row["Array"]=arrSeg?(arrSeg==='__attr'?`${row["AEP Field Name"]}[]`:`${arrSeg}[]`):'';
+    // Always apply identity — blank selection means "clear"
     if(identity==='Primary')row["Primary/Secondary Identity"]=idx===0?'Primary':'Secondary';
-    else if(identity)row["Primary/Secondary Identity"]=identity;
-    row["XDM Column Path"]=buildPath(tenant,fgClass,objPath,row["AEP Field Name"]||'',arrSeg);
+    else row["Primary/Secondary Identity"]=identity;
+    // Preserve existing tenant when Step 2 tenant field is blank
+    const rowTenant=tenant||extractTenant(row["XDM Column Path"])||'';
+    row["XDM Column Path"]=buildPath(rowTenant,fgClass,objPath,row["AEP Field Name"]||'',arrSeg);
     if(objPath)updatedPaths.add(objPath);
   });
 
