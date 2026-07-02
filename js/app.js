@@ -166,30 +166,73 @@ function setupFileInput(){
   });
 }
 
-function applyTenantReplacement(){
-  const input=document.getElementById('tenantPlaceholderInput');
+// Step-1 (upload card) banner
+function applyTenantReplacement(){ applyTenantCore('tenantPlaceholderInput'); }
+// Step-2 (mapping table) banner
+function applyTenantReplacement2(){ applyTenantCore('tenantPlaceholderInput2'); }
+
+function hideTenantBanners(){
+  const b1=document.getElementById('tenantPlaceholderBanner');
+  const b2=document.getElementById('tenantPlaceholderBanner2');
+  if(b1)b1.style.display='none';
+  if(b2)b2.style.display='none';
+}
+
+// Detect whether any loaded row still has a placeholder tenant ('<'/'>' in path)
+// and, if so, reveal the step-2 banner pre-filled with the placeholder.
+function refreshTenantBanner2(){
+  const b2=document.getElementById('tenantPlaceholderBanner2');
+  if(!b2||typeof data==='undefined')return;
+  const rowWith=data.find(r=>/[<>]/.test(r["XDM Column Path"]||''));
+  if(rowWith){
+    const m=(rowWith["XDM Column Path"]||'').match(/^_?[^.]*[<>][^.]*/);
+    const inp=document.getElementById('tenantPlaceholderInput2');
+    if(inp&&m)inp.dataset.placeholder=m[0];
+    b2.style.display='flex';
+  }else{
+    b2.style.display='none';
+  }
+}
+
+function applyTenantCore(inputId){
+  const input=document.getElementById(inputId);
   const raw=(input.value||'').trim();
   if(!raw){setStatus('Please enter a Tenant ID',true);return;}
   const newTenant='_'+raw.replace(/^_/,'');
   const placeholder=input.dataset.placeholder||'';
   if(!placeholder){setStatus('No placeholder to replace',true);return;}
-  function replacePlaceholder(rows){
-    return rows.map(r=>{
-      const row={...r};
-      if(row["XDM Column Path"])row["XDM Column Path"]=row["XDM Column Path"].split(placeholder).join(newTenant);
-      if(row.__objectPath)row.__objectPath=row.__objectPath.split(placeholder).join(newTenant);
-      return row;
-    });
+  function rep(v){return (v&&v.split)?v.split(placeholder).join(newTenant):v;}
+  function replaceInRow(row){
+    if(row["XDM Column Path"])row["XDM Column Path"]=rep(row["XDM Column Path"]);
+    if(row.__objectPath)row.__objectPath=rep(row.__objectPath);
+    return row;
   }
-  // Replace in both arrays — whichever path was used to load the file
-  if(pendingRows&&pendingRows.length) pendingRows=replacePlaceholder(pendingRows);
-  if(jsonRows&&jsonRows.length) jsonRows=replacePlaceholder(jsonRows);
-  if(pendingRows&&pendingRows.length){
+  hideTenantBanners();
+  if(typeof data!=='undefined'&&data.length){
+    // Table is loaded — mutate the LIVE `data` array the grid renders.
+    // Selection-aware: if rows are checked, only those; otherwise all.
+    // (In the upload path data[i] shares object identity with pendingRows[i],
+    // so leaving pendingRows untouched keeps unselected rows consistent.)
+    const checked=[...document.querySelectorAll('.rc:checked')].map(cb=>parseInt(cb.dataset.i));
+    const targets=checked.length?checked:data.map((_,i)=>i);
+    let count=0;
+    targets.forEach(i=>{
+      if(!data[i])return;
+      const before=data[i]["XDM Column Path"];
+      replaceInRow(data[i]);
+      if(before!==data[i]["XDM Column Path"])count++;
+    });
+    renderTable();
+    refreshTenantBanner2();
+    setStatus(`Replaced tenant placeholder in ${count} field${count!==1?'s':''}.`);
+  }else if(pendingRows&&pendingRows.length){
+    // Applied from step 1 before loading — replace across all pending rows.
+    pendingRows.forEach(replaceInRow);
     setUploadReady('',pendingRows.length);
-  } else if(jsonRows&&jsonRows.length){
+  }else if(jsonRows&&jsonRows.length){
+    jsonRows.forEach(replaceInRow);
     note(`AEP Schema Export · Tenant: <b>${esc(newTenant)}</b> · ${jsonRows.length} fields`);
   }
-  document.getElementById('tenantPlaceholderBanner').style.display='none';
 }
 
 function loadData(){

@@ -484,6 +484,16 @@ body{display:flex;flex-direction:column}
             </div>
 
             <div class="s-alert" id="uploadAlert"><i class="ti ti-info-circle"></i><div id="uploadAlertText"></div></div>
+            <div id="tenantPlaceholderBanner" style="display:none;align-items:center;gap:8px;margin-top:10px;padding:10px 14px;background:#fff8e1;border:1px solid #f59f00;border-radius:6px;font-size:12px;flex-wrap:wrap">
+              <i class="ti ti-alert-triangle" style="color:#f59f00;font-size:16px;flex-shrink:0"></i>
+              <span style="flex:1;min-width:200px">This file uses a <b>tenant ID placeholder</b>. Enter your real Tenant ID to update all XDM paths:</span>
+              <input id="tenantPlaceholderInput" type="text" placeholder="e.g. wellsfargo"
+                style="padding:5px 9px;border:1px solid #d4a017;border-radius:4px;font-size:12px;width:160px;background:#fffdf0"
+                onkeydown="if(event.key==='Enter')applyTenantReplacement()">
+              <button class="btn btn-primary" style="padding:5px 14px;font-size:12px" onclick="applyTenantReplacement()">
+                <i class="ti ti-check"></i> Apply
+              </button>
+            </div>
           </div>
           <div class="s-card-foot">
             <button class="s-btn s-btn-lg" id="loadUploadBtn" onclick="goToStep2ByUpload()" disabled
@@ -517,16 +527,6 @@ body{display:flex;flex-direction:column}
           <button class="btn btn-primary" id="loadBtn" onclick="loadData()" style="display:none"><i class="ti ti-table-import"></i> Load</button>
         </div>
         <div class="up-note" id="upNote"></div>
-        <div id="tenantPlaceholderBanner" style="display:none;align-items:center;gap:8px;margin-top:8px;padding:10px 14px;background:#fff8e1;border:1px solid #f59f00;border-radius:6px;font-size:12px;flex-wrap:wrap">
-          <i class="ti ti-alert-triangle" style="color:#f59f00;font-size:16px;flex-shrink:0"></i>
-          <span style="flex:1;min-width:200px">This file uses a <b>tenant ID placeholder</b>. Enter your real Tenant ID to update all XDM paths:</span>
-          <input id="tenantPlaceholderInput" type="text" placeholder="e.g. wellsfargo"
-            style="padding:5px 9px;border:1px solid #d4a017;border-radius:4px;font-size:12px;width:160px;background:#fffdf0"
-            onkeydown="if(event.key==='Enter')applyTenantReplacement()">
-          <button class="btn btn-primary" style="padding:5px 14px;font-size:12px" onclick="applyTenantReplacement()">
-            <i class="ti ti-check"></i> Apply
-          </button>
-        </div>
       </div>
 
       <div class="ctrl-step">
@@ -563,6 +563,17 @@ body{display:flex;flex-direction:column}
           </div>
         </div>
       </div>
+    </div>
+
+    <div id="tenantPlaceholderBanner2" style="display:none;align-items:center;gap:8px;margin:0 0 10px;padding:10px 14px;background:#fff8e1;border:1px solid #f59f00;border-radius:6px;font-size:12px;flex-wrap:wrap">
+      <i class="ti ti-alert-triangle" style="color:#f59f00;font-size:16px;flex-shrink:0"></i>
+      <span style="flex:1;min-width:200px">This file uses a <b>tenant ID placeholder</b>. Enter your real Tenant ID to update XDM paths. Select specific rows first to apply to only those, or leave none selected to apply to all:</span>
+      <input id="tenantPlaceholderInput2" type="text" placeholder="e.g. wellsfargo"
+        style="padding:5px 9px;border:1px solid #d4a017;border-radius:4px;font-size:12px;width:160px;background:#fffdf0"
+        onkeydown="if(event.key==='Enter')applyTenantReplacement2()">
+      <button class="btn btn-primary" style="padding:5px 14px;font-size:12px" onclick="applyTenantReplacement2()">
+        <i class="ti ti-check"></i> Apply
+      </button>
     </div>
 
     <div class="tbl-wrap">
@@ -642,12 +653,12 @@ body{display:flex;flex-direction:column}
 </div>
 
 <!-- JS FILES -->
-<script src="js/column-schema.js?v=7"></script>
-<script src="js/parser.js?v=7"></script>
-<script src="js/filter.js?v=7"></script>
-<script src="js/render.js?v=7"></script>
-<script src="js/export.js?v=7"></script>
-<script src="js/app.js?v=7"></script>
+<script src="js/column-schema.js?v=10"></script>
+<script src="js/parser.js?v=10"></script>
+<script src="js/filter.js?v=10"></script>
+<script src="js/render.js?v=10"></script>
+<script src="js/export.js?v=10"></script>
+<script src="js/app.js?v=10"></script>
 
 <!-- SETUP + WIZARD LOGIC -->
 <script>
@@ -822,6 +833,7 @@ async function goToStep2ByUpload() {
   };
   note('Loaded <b>' + data.length + '</b> rows. ' + (msgMap[currentMode] || ''));
   setStatus(data.length + ' rows loaded from file — ready to map');
+  if (typeof refreshTenantBanner2 === 'function') refreshTenantBanner2();
 }
 
 function _switchToStep2() {
