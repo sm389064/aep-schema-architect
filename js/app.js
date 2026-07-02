@@ -181,12 +181,12 @@ function applyTenantReplacement(){
       return row;
     });
   }
-  const isPending=input.dataset.mode==='pending';
-  if(isPending){
-    pendingRows=replacePlaceholder(pendingRows);
+  // Replace in both arrays — whichever path was used to load the file
+  if(pendingRows&&pendingRows.length) pendingRows=replacePlaceholder(pendingRows);
+  if(jsonRows&&jsonRows.length) jsonRows=replacePlaceholder(jsonRows);
+  if(pendingRows&&pendingRows.length){
     setUploadReady('',pendingRows.length);
-  } else {
-    jsonRows=replacePlaceholder(jsonRows);
+  } else if(jsonRows&&jsonRows.length){
     note(`AEP Schema Export · Tenant: <b>${esc(newTenant)}</b> · ${jsonRows.length} fields`);
   }
   document.getElementById('tenantPlaceholderBanner').style.display='none';
