@@ -240,14 +240,14 @@ function renderTable(){
           if(c==="XDM Column Path"){
             return `<td class="${td}">
               <div class="ce tdpath" contenteditable="true"
-                onblur="editCell(${i},'XDM Column Path',this.innerText.trim())">${val}</div>
+                onblur="editCell(${i},'XDM Column Path',this.innerText.trim())">${esc(val)}</div>
             </td>`;
           }
 
           if(c==="AEP Field Name"){
             return `<td class="${td}">
               <div class="ce" contenteditable="true" title="Auto-converts to camelCase"
-                onblur="enforceCamel(${i},this)">${val}</div>
+                onblur="enforceCamel(${i},this)">${esc(val)}</div>
             </td>`;
           }
 

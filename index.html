@@ -3,173 +3,598 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AEP Schema Architect</title>
+<title>AEP Schema Architect — Data Mapping</title>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <link rel="stylesheet" href="css/styles.css">
+<style>
+/* ─── LAYOUT ─── */
+html,body{height:100%;overflow:hidden}
+body{display:flex;flex-direction:column}
+
+/* ─── TOPBAR: wizard breadcrumb ─── */
+.wiz-bar{display:flex;align-items:center;gap:3px;margin-left:20px}
+.wiz-step{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:rgba(255,255,255,.35);padding:5px 12px;border-radius:20px;white-space:nowrap;transition:all .2s;cursor:default;user-select:none}
+.wiz-step.ws-active{color:#fff;background:rgba(255,255,255,.13)}
+.wiz-step.ws-done{color:rgba(255,255,255,.42);cursor:pointer}
+.wiz-step.ws-done:hover{color:rgba(255,255,255,.75);background:rgba(255,255,255,.07)}
+.wiz-num{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;transition:all .2s}
+.wiz-step.ws-active .wiz-num{background:#1473e6}
+.wiz-step.ws-done .wiz-num{background:rgba(255,255,255,.16);color:rgba(255,255,255,.5)}
+.wiz-arrow{color:rgba(255,255,255,.2);font-size:15px;flex-shrink:0}
+.wiz-change{font-size:11px;color:rgba(255,255,255,.4);cursor:pointer;display:none;align-items:center;gap:4px;padding:4px 8px;border-radius:4px;transition:all .15s;white-space:nowrap;margin-right:6px}
+.wiz-change:hover{color:rgba(255,255,255,.75);background:rgba(255,255,255,.08)}
+
+.tb-status{font-size:11px;display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);white-space:nowrap}
+.tb-status.ok{background:rgba(45,157,120,.25);color:#7de8c2}
+.tb-status.err{background:rgba(250,15,0,.2);color:#ff8080}
+
+/* ─── PANELS ─── */
+.wiz-panels{flex:1;min-height:0;position:relative;display:flex;flex-direction:column}
+#modePanel,#step1Panel,#step2Panel{position:absolute;inset:0}
+
+#modePanel  {overflow-y:auto;background:#f2f2f2;display:flex;flex-direction:column;transition:opacity .25s}
+#step1Panel {overflow-y:auto;background:#f2f2f2;display:none;flex-direction:column}
+#step2Panel {display:none;flex-direction:column}
+
+/* ─── MODE SELECTION ─── */
+.mode-page{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px 64px;min-height:0}
+.mode-hero{text-align:center;margin-bottom:40px}
+.mode-hero h1{font-size:26px;font-weight:700;color:#1c1c1c;margin-bottom:8px}
+.mode-hero p{font-size:14px;color:#666;max-width:480px;margin:0 auto}
+
+.mode-cards{display:flex;gap:20px;width:100%;max-width:960px;align-items:stretch}
+.mode-card{
+  flex:1;background:#fff;border:2px solid #e2e2e2;border-radius:16px;
+  padding:32px 26px 26px;cursor:pointer;transition:all .2s;
+  display:flex;flex-direction:column;gap:0;
+}
+.mode-card:hover{border-color:#1473e6;box-shadow:0 8px 32px rgba(20,115,230,.13);transform:translateY(-3px)}
+.mode-card.mc-amber:hover{border-color:#e8a030;box-shadow:0 8px 32px rgba(232,160,48,.15)}
+.mode-card.mc-green:hover{border-color:#2d9d78;box-shadow:0 8px 32px rgba(45,157,120,.15)}
+
+.mc-icon-wrap{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:18px;flex-shrink:0}
+.mc-blue  .mc-icon-wrap{background:#eef3ff;color:#1473e6}
+.mc-amber .mc-icon-wrap{background:#fff8ee;color:#c87000}
+.mc-green .mc-icon-wrap{background:#eaf7f2;color:#2d9d78}
+
+.mc-title{font-size:16px;font-weight:700;color:#1c1c1c;margin-bottom:8px}
+.mc-desc{font-size:12px;color:#6e6e6e;line-height:1.6;margin-bottom:18px;flex:1}
+.mc-bullets{list-style:none;margin-bottom:24px;display:flex;flex-direction:column;gap:6px}
+.mc-bullets li{font-size:12px;color:#444;display:flex;align-items:flex-start;gap:7px;line-height:1.5}
+.mc-bullets li::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.mc-blue  .mc-bullets li::before{background:#1473e6}
+.mc-amber .mc-bullets li::before{background:#c87000}
+.mc-green .mc-bullets li::before{background:#2d9d78}
+
+.mc-cta{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:700;padding:10px 20px;border-radius:8px;transition:all .15s;align-self:flex-start;margin-top:auto}
+.mc-blue  .mc-cta{background:#1473e6;color:#fff}
+.mc-amber .mc-cta{background:#e8a030;color:#fff}
+.mc-green .mc-cta{background:#2d9d78;color:#fff}
+.mode-card:hover .mc-cta{opacity:.9}
+
+/* ─── STEP 1 COMMON ─── */
+.s-page{flex:1;display:flex;flex-direction:column;align-items:center;padding:36px 24px 72px;gap:0}
+.s-hero-sm{text-align:center;margin-bottom:32px}
+.s-hero-sm h2{font-size:18px;font-weight:700;color:#1c1c1c;margin-bottom:4px}
+.s-hero-sm p{font-size:13px;color:#666}
+
+.s-section{width:100%;max-width:720px;opacity:0;transform:translateY(14px);pointer-events:none;height:0;overflow:hidden;transition:opacity .35s,transform .35s}
+.s-section.visible{opacity:1;transform:none;pointer-events:auto;height:auto;overflow:visible;margin-bottom:20px}
+.s-connector{display:none;width:2px;height:24px;background:linear-gradient(#d0d0d0,#e8e8e8);margin:0 auto;flex-shrink:0}
+.s-section.visible~.s-connector{display:block}
+
+.s-card{background:#fff;border:1px solid #e2e2e2;border-radius:12px;overflow:hidden;width:100%}
+.s-card.done{border-color:#9eddc8}
+.s-card-head{padding:16px 22px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e2e2e2}
+.s-card.done .s-card-head{border-bottom-color:#9eddc8;background:#eaf7f2}
+.s-ch-num{width:28px;height:28px;border-radius:50%;background:#f0f4ff;color:#1473e6;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.s-card.done .s-ch-num{background:#2d9d78;color:#fff}
+.s-ch-title{font-size:14px;font-weight:700;flex:1}
+.s-ch-meta{font-size:12px;color:#6e6e6e;margin-top:1px}
+.s-ch-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;flex-shrink:0}
+.badge-blue{background:#1473e6;color:#fff}
+.badge-green{background:#2d9d78;color:#fff}
+.badge-amber{background:#e8a030;color:#fff}
+.s-card-body{padding:22px}
+.s-card-foot{padding:14px 22px;border-top:1px solid #e2e2e2;background:#fafafa;display:flex;align-items:center;gap:10px;justify-content:flex-end}
+
+/* ─── FORM ELEMENTS (step 1) ─── */
+.s-field{display:flex;flex-direction:column;gap:5px}
+.s-field label{font-size:11px;font-weight:700;color:#6e6e6e;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:5px}
+.s-req{color:#fa0f00;font-size:14px;line-height:1}
+.fi{height:38px;border:1px solid #e2e2e2;border-radius:7px;padding:0 12px;font-size:13px;font-family:inherit;color:#2c2c2c;background:#fff;outline:none;width:100%;transition:border-color .18s,box-shadow .18s}
+.fi:focus{border-color:#1473e6;box-shadow:0 0 0 3px rgba(20,115,230,.1)}
+.fi.filled{border-color:#9eddc8}
+.fi.empty{border-color:#e8a060;background:#fff9f4}
+.fi-wrap{position:relative}
+.fi-wrap .fi{padding-right:38px}
+.fi-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#6e6e6e;font-size:16px;padding:0}
+.fi-eye:hover{color:#1473e6}
+.s-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.s-full{grid-column:1/-1}
+
+.s-btn{height:38px;padding:0 20px;border-radius:7px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;border:1px solid #e2e2e2;background:#fff;color:#2c2c2c;display:inline-flex;align-items:center;gap:8px;transition:background .15s,border-color .15s;white-space:nowrap;flex-shrink:0}
+.s-btn:hover:not(:disabled){background:#f5f5f5}
+.s-btn:disabled{opacity:.4;cursor:not-allowed}
+.s-btn-blue{background:#1473e6;color:#fff;border-color:#1473e6}
+.s-btn-blue:hover:not(:disabled){background:#0d66d0;border-color:#0d66d0}
+.s-btn-green{background:#2d9d78;color:#fff;border-color:#2d9d78}
+.s-btn-green:hover:not(:disabled){background:#228a66;border-color:#228a66}
+.s-btn-amber{background:#e8a030;color:#fff;border-color:#e8a030}
+.s-btn-amber:hover:not(:disabled){background:#c88020;border-color:#c88020}
+.s-btn-lg{height:42px;font-size:14px;padding:0 26px}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.s-alert{display:none;padding:11px 14px;border-radius:7px;font-size:12px;line-height:1.5;align-items:flex-start;gap:8px;margin-top:14px}
+.s-alert.show{display:flex}
+.s-alert i{font-size:15px;flex-shrink:0;margin-top:1px}
+.a-info{background:#f0f4ff;border:1px solid #c0d0f5;color:#1a3a8c}
+.a-success{background:#eaf7f2;border:1px solid #9eddc8;color:#1a5e40}
+.a-error{background:#fff0f0;border:1px solid #f0c0c0;color:#8b1a1a}
+.a-warning{background:#fffbea;border:1px solid #f0d060;color:#7a5500}
+
+/* ─── DROP ZONES ─── */
+.s-dz{border:2px dashed #d0d0d0;border-radius:12px;padding:28px 22px;text-align:center;cursor:pointer;background:#fafafa;transition:border-color .2s,background .2s}
+.s-dz:hover,.s-dz.over{border-color:#1473e6;background:#f0f4ff}
+.s-dz.ok{border-color:#2d9d78;background:#eaf7f2}
+.s-dz.ok-amber{border-color:#e8a030;background:#fffbee}
+.s-dz-icon{font-size:32px;color:#b0b0b0;margin-bottom:8px}
+.s-dz.ok .s-dz-icon,.s-dz.ok-amber .s-dz-icon{color:#2d9d78}
+.s-dz.ok-amber .s-dz-icon{color:#c87000}
+.s-dz-title{font-size:13px;font-weight:600;margin-bottom:3px}
+.s-dz-hint{font-size:12px;color:#6e6e6e}
+.s-cred-fields{display:none;margin-top:20px}
+.s-cred-fields.show{display:block}
+.s-sec-label{font-size:11px;font-weight:700;color:#6e6e6e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.s-sec-label::after{content:'';flex:1;height:1px;background:#e2e2e2}
+
+/* ─── UPLOAD CARD (Paths B/C) ─── */
+.upload-info-box{background:#f8f9fc;border:1px solid #e2e2e2;border-radius:8px;padding:14px 16px;margin-top:16px;display:flex;flex-direction:column;gap:6px}
+.upload-info-row{display:flex;align-items:center;gap:8px;font-size:12px;color:#444}
+.upload-info-row i{font-size:14px;color:#1473e6;flex-shrink:0}
+
+.sheet-sel-wrap{display:none;margin-top:12px}
+.sheet-sel-wrap.show{display:flex;align-items:center;gap:8px}
+
+/* ─── COLLAPSIBLES ─── */
+.ct{display:flex;align-items:center;gap:6px;font-size:12px;color:#6e6e6e;cursor:pointer;user-select:none;margin-top:14px}
+.ct:hover{color:#1473e6}
+.ct i.chev{transition:transform .2s;font-size:13px}
+.ct.open i.chev{transform:rotate(90deg)}
+.cc{display:none;margin-top:8px}
+.cc.open{display:block}
+.code{background:#1a1a2e;border-radius:7px;padding:12px 14px;font-family:'Courier New',monospace;font-size:11px;line-height:1.7;color:#a8d8ff;overflow-x:auto}
+.code .k{color:#f5c0e8}.code .v{color:#a8e8b8}.code .c{color:#555}
+.ok-dot{color:#2d9d78;font-size:13px}
+.miss-dot{color:#e08030;font-size:13px}
+
+/* ─── SANDBOX / SCHEMA (AEP path) ─── */
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.filter-label{font-size:12px;color:#6e6e6e;font-weight:600;margin-right:4px}
+.pill-btn{height:30px;padding:0 14px;border-radius:20px;border:1px solid #d0d0d0;background:#fff;font-size:12px;font-weight:600;color:#6e6e6e;cursor:pointer;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.pill-btn:hover{border-color:#1473e6;color:#1473e6;background:#f0f4ff}
+.pill-btn.active{background:#1473e6;color:#fff;border-color:#1473e6}
+.schema-search-wrap{position:relative;margin-bottom:10px}
+.schema-search-wrap i{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:15px;color:#6e6e6e;pointer-events:none}
+.schema-search{height:36px;border:1px solid #e2e2e2;border-radius:7px;padding:0 12px 0 34px;font-size:13px;font-family:inherit;outline:none;width:100%}
+.schema-search:focus{border-color:#1473e6}
+.schema-list{border:1px solid #e2e2e2;border-radius:7px;max-height:300px;overflow-y:auto}
+.schema-list::-webkit-scrollbar{width:5px}
+.schema-list::-webkit-scrollbar-thumb{background:#d0d0d0;border-radius:3px}
+.sitem{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid #e2e2e2;cursor:pointer;transition:background .12s}
+.sitem:last-child{border-bottom:none}
+.sitem:hover{background:#f5f7ff}
+.sitem.sel{background:#ebf0ff}
+.si-icon{width:30px;height:30px;border-radius:6px;background:#eef2ff;display:flex;align-items:center;justify-content:center;font-size:14px;color:#1473e6;flex-shrink:0}
+.si-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px}
+.si-meta{font-size:11px;color:#6e6e6e;margin-top:1px}
+.si-check{margin-left:auto;color:#1473e6;font-size:17px;display:none;flex-shrink:0}
+.sitem.sel .si-check{display:block}
+.spill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.03em;flex-shrink:0}
+.p-profile{background:#e8f0ff;color:#1a3a9e}
+.p-event{background:#fff3e0;color:#7a3f00}
+.p-lookup{background:#f0fae8;color:#2d5e10}
+.p-other{background:#f5f5f5;color:#5a5a5a}
+.p-std{background:#f3e8ff;color:#5a1a9e}
+.schema-empty{padding:36px 20px;text-align:center;color:#6e6e6e;font-size:13px}
+.schema-empty i{font-size:28px;margin-bottom:8px;display:block;color:#b0b0b0}
+.schema-footer{padding:8px 14px;border-top:1px solid #e2e2e2;background:#fafafa;font-size:11px;color:#6e6e6e;display:flex;align-items:center;justify-content:space-between}
+</style>
 </head>
 <body>
 
-<!-- TOPBAR -->
+<!-- ══ TOPBAR ══ -->
 <div class="topbar">
   <div class="tb-logo">
     <svg viewBox="0 0 24 24" fill="#fa0f00"><path d="M14.235 2L22 22h-5.538l-2.03-5.385H9.568L14.235 2zm-4.47 10.892l2.003 5.723H7.762l2.003-5.723zM2 22l3.846-9.846L9.385 22H2z"/></svg>
     AEP Schema Architect
   </div>
-  <input type="text" id="schemaName" placeholder="e.g. Profile Schema"
-    style="width:180px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:5px;padding:5px 9px;font-size:12px;font-family:inherit;outline:none">
-  <div class="tb-actions">
-    <button class="tbtn" id="undoBtn" onclick="undo()" disabled><i class="ti ti-arrow-back-up"></i> Undo</button>
-    <button class="tbtn" id="redoBtn" onclick="redo()" disabled><i class="ti ti-arrow-forward-up"></i> Redo</button>
-    <div class="tb-div"></div>
-    <button class="tbtn" onclick="exportExcel()"><i class="ti ti-file-spreadsheet"></i> Export Excel</button>
-    <button class="tbtn" onclick="exportJSON()"><i class="ti ti-file-code"></i> Export JSON</button>
-    <div class="tb-div"></div>
-    <button class="tbtn" onclick="clearAll()"><i class="ti ti-trash"></i> Clear</button>
+
+  <!-- Wizard breadcrumb (hidden during mode selection) -->
+  <div id="wizBar" style="display:none;align-items:center;gap:3px;margin-left:16px">
+    <span class="wiz-change" id="wizChange" onclick="goToModeSelect()">
+      <i class="ti ti-arrow-left" style="font-size:12px"></i> Source
+    </span>
+    <div class="wiz-bar" id="wizSteps">
+      <span class="wiz-step ws-active" id="ws1" onclick="goToStep1()">
+        <span class="wiz-num" id="wn1">1</span>
+        <span id="wl1">Connect to AEP</span>
+      </span>
+      <i class="ti ti-chevron-right wiz-arrow"></i>
+      <span class="wiz-step" id="ws2">
+        <span class="wiz-num">2</span> Map Schema
+      </span>
+    </div>
+  </div>
+
+  <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+    <!-- Step 1 right (proxy status) -->
+    <div id="tb1" style="display:flex;align-items:center">
+      <div class="tb-status" id="proxyStatus"><i class="ti ti-circle-dashed"></i> Checking proxy…</div>
+    </div>
+    <!-- Step 2 right (toolbar actions) -->
+    <div id="tb2" class="tb-actions" style="display:none;align-items:center;gap:6px">
+      <input type="text" id="schemaName" placeholder="Schema name"
+        style="width:160px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:5px;padding:5px 9px;font-size:12px;font-family:inherit;outline:none">
+      <div class="tb-div"></div>
+      <button class="tbtn" id="undoBtn" onclick="undo()" disabled><i class="ti ti-arrow-back-up"></i> Undo</button>
+      <button class="tbtn" id="redoBtn" onclick="redo()" disabled><i class="ti ti-arrow-forward-up"></i> Redo</button>
+      <div class="tb-div"></div>
+      <button class="tbtn" onclick="exportExcel()"><i class="ti ti-file-spreadsheet"></i> Export Excel</button>
+      <button class="tbtn" onclick="exportJSON()"><i class="ti ti-file-code"></i> Export JSON</button>
+      <div class="tb-div"></div>
+      <button class="tbtn" onclick="clearAll()"><i class="ti ti-trash"></i> Clear</button>
+    </div>
   </div>
 </div>
 
-<!-- CONTROL BAR -->
-<div class="ctrl-bar">
-  <div class="ctrl-step" style="min-width:260px;flex-shrink:0">
-    <div class="step-lbl"><span class="sn">1</span> Upload Source File</div>
-    <div class="ctrl-row">
-      <div class="f">
-        <label>File — data dict, mapping or XDM JSON</label>
-        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.json" style="width:200px">
-      </div>
-      <div class="f" id="sheetBox" style="display:none">
-        <label>Sheet</label>
-        <select id="sheetSelect" style="width:120px"></select>
-      </div>
-      <button class="btn btn-primary" id="loadBtn" onclick="loadData()" style="display:none">
-        <i class="ti ti-table-import"></i> Load
-      </button>
-    </div>
-    <div class="up-note" id="upNote"></div>
-  </div>
+<!-- ══ WIZARD PANELS ══ -->
+<div class="wiz-panels">
 
-  <div class="ctrl-step">
-    <div class="step-lbl"><span class="sn">2</span> Field Group &amp; Object Mapping (Bulk Apply)</div>
-    <div class="ctrl-row">
-      <div class="f"><label>Tenant Node</label>
-        <input type="text" id="cTenant" placeholder="_myorg" style="width:100px"></div>
-      <div class="f"><label>Field Group Name</label>
-        <input type="text" id="cFieldGroup" placeholder="e.g. Customer Details FG" style="width:165px"></div>
-      <div class="f"><label>Classification</label>
-        <select id="cFGClass" style="width:95px">
-          <option value="Custom">Custom</option>
-          <option value="OOTB">OOTB</option>
-        </select></div>
-      <div class="f"><label>Object Path</label>
-        <input type="text" id="cObjectPath" placeholder="e.g. customer.data.name" style="width:165px"></div>
-      <div class="f">
-        <label>Is Array?</label>
-        <select id="cArray" style="width:200px" onchange="onArrChange()">
-          <option value=""></option>
-        </select>
+  <!-- ══════════════════════════════════════════
+       MODE SELECTION — shown first
+       ══════════════════════════════════════════ -->
+  <div id="modePanel">
+    <div class="mode-page">
+      <div class="mode-hero">
+        <h1>Automating Data Mapping Document</h1>
+        <p>What would you like to do today? Choose your path to get started.</p>
       </div>
-      <div class="f"><label>Identity</label>
-        <select id="cIdentity" style="width:105px">
-          <option value=""></option>
-          <option value="Primary">Primary</option>
-          <option value="Secondary">Secondary</option>
-        </select></div>
-      <button class="btn btn-primary" onclick="applyMapping()">
-        <i class="ti ti-check"></i> Apply to Selected
-      </button>
+
+      <div class="mode-cards">
+
+        <!-- Card A: Connect to AEP -->
+        <div class="mode-card mc-blue" onclick="selectMode('aep')">
+          <div class="mc-icon-wrap"><i class="ti ti-plug-connected"></i></div>
+          <div class="mc-title">Connect to AEP</div>
+          <div class="mc-desc">Pull a schema directly from your AEP sandbox and build a data mapping document from scratch.</div>
+          <ul class="mc-bullets">
+            <li>You have AEP API credentials</li>
+            <li>Map source data to an existing XDM schema</li>
+            <li>Start with a fully structured field list</li>
+          </ul>
+          <span class="mc-cta"><i class="ti ti-plug-connected"></i> Connect to AEP</span>
+        </div>
+
+        <!-- Card B: Standardize Mapping Doc -->
+        <div class="mode-card mc-amber" onclick="selectMode('standardize')">
+          <div class="mc-icon-wrap"><i class="ti ti-file-text"></i></div>
+          <div class="mc-title">Standardize a Mapping Doc</div>
+          <div class="mc-desc">Upload an existing data mapping document and clean it up into a standardized, consistent format.</div>
+          <ul class="mc-bullets">
+            <li>You have an old or inconsistent mapping file</li>
+            <li>Fields need renaming, reclassifying or restructuring</li>
+            <li>Output a clean, standardized Excel document</li>
+            <li>Accepts <b>.xlsx</b>, <b>.csv</b> or <b>.json</b> export files</li>
+          </ul>
+          <span class="mc-cta" style="background:#e8a030"><i class="ti ti-upload"></i> Upload Mapping Doc</span>
+        </div>
+
+        <!-- Card C: Data Dictionary -->
+        <div class="mode-card mc-green" onclick="selectMode('dictionary')">
+          <div class="mc-icon-wrap"><i class="ti ti-table-column"></i></div>
+          <div class="mc-title">Start from Data Dictionary</div>
+          <div class="mc-desc">Upload a data dictionary with source columns and data types, then map each field to AEP XDM.</div>
+          <ul class="mc-bullets">
+            <li>You have a list of source fields and data types</li>
+            <li>No existing mapping — building from scratch</li>
+            <li>Map to XDM field names, paths and field groups</li>
+            <li>Accepts <b>.xlsx</b>, <b>.csv</b> or <b>.json</b> AEP schema export</li>
+          </ul>
+          <span class="mc-cta" style="background:#2d9d78"><i class="ti ti-upload"></i> Upload Data Dictionary</span>
+        </div>
+
+      </div>
     </div>
-    <div class="cfg-ctx none" id="cfgCtx"></div>
-    <div style="margin-top:6px">
-      <span id="metaToggle" onclick="toggleMetaFields()"
-        style="font-size:10px;color:#1473e6;cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:3px">
-        <i class="ti ti-chevron-right" id="metaChevron" style="font-size:11px"></i> Export Metadata
-      </span>
-      <div id="metaFields" style="display:none;margin-top:8px">
-        <div class="ctrl-row" style="flex-wrap:wrap;gap:8px">
-          <div class="f"><label>Change Date</label>
-            <input type="text" id="mChangeDate" placeholder="DD/MM/YYYY" style="width:110px"></div>
-          <div class="f"><label>Consultant</label>
-            <input type="text" id="mConsultant" placeholder="Name" style="width:120px"></div>
-          <div class="f"><label>XDM Schema Name</label>
-            <input type="text" id="mSchemaName" placeholder="e.g. sch_profl_customer" style="width:160px"></div>
-          <div class="f"><label>XDM Schema Type</label>
-            <select id="mSchemaType" style="width:130px">
-              <option value=""></option>
-              <option value="Profile">Profile</option>
-              <option value="ExperienceEvent">ExperienceEvent</option>
-              <option value="Lookup">Lookup</option>
-              <option value="ExperienceEvent (Streaming)">ExperienceEvent (Streaming)</option>
-            </select></div>
-          <div class="f"><label>XDM Dataset Name</label>
-            <input type="text" id="mDatasetName" placeholder="e.g. ds_profl_customer" style="width:160px"></div>
-          <div class="f"><label>Source Table Name</label>
-            <input type="text" id="mSourceTable" placeholder="e.g. CRM_CUSTOMERS" style="width:140px"></div>
-          <div class="f"><label>Source</label>
-            <input type="text" id="mSource" placeholder="e.g. Salesforce" style="width:110px"></div>
-          <div class="f"><label>Upload Method</label>
-            <input type="text" id="mUploadMethod" placeholder="e.g. Batch" style="width:110px"></div>
-          <div class="f"><label>Update Frequency</label>
-            <input type="text" id="mUpdateFreq" placeholder="e.g. Daily" style="width:110px"></div>
+  </div><!-- /modePanel -->
+
+
+  <!-- ══════════════════════════════════════════
+       STEP 1 — Path-specific wizard
+       ══════════════════════════════════════════ -->
+  <div id="step1Panel">
+    <div class="s-page">
+      <div class="s-hero-sm">
+        <h2 id="s1Title">Connect to AEP</h2>
+        <p id="s1Sub">Follow the steps below to authenticate and select a schema</p>
+      </div>
+
+      <!-- ── PATH A: AEP CREDENTIALS ── -->
+      <div class="s-section visible" id="sec-creds">
+        <div class="s-card" id="card-creds">
+          <div class="s-card-head">
+            <div class="s-ch-num">1</div>
+            <div><div class="s-ch-title">AEP Credentials</div><div class="s-ch-meta">Upload your Postman environment file or fill in manually</div></div>
+            <span class="s-ch-badge badge-blue">Required</span>
+          </div>
+          <div class="s-card-body">
+            <div class="s-dz" id="dz" onclick="document.getElementById('fi').click()"
+              ondragover="dzOver(event)" ondragleave="dzOut()" ondrop="dzDrop(event)">
+              <div class="s-dz-icon"><i class="ti ti-file-type-json" id="dzIcon"></i></div>
+              <div class="s-dz-title" id="dzTitle">Drag &amp; drop your Postman environment file here</div>
+              <div class="s-dz-hint">or click to browse (.json · .postman_environment)</div>
+            </div>
+            <input type="file" id="fi" accept=".json,.postman_environment" style="display:none" onchange="onFSel(this)">
+
+            <div class="ct" id="fmtT" onclick="tog('fmtT','fmtC')"><i class="ti ti-chevron-right chev"></i> Expected Postman environment format</div>
+            <div class="cc" id="fmtC">
+              <div class="code"><span class="c">// .json or .postman_environment</span>
+{ <span class="k">"values"</span>: [
+    { <span class="k">"key"</span>: <span class="v">"CLIENT_ID"</span>,     <span class="k">"value"</span>: <span class="v">"abc123"</span> },
+    { <span class="k">"key"</span>: <span class="v">"CLIENT_SECRET"</span>, <span class="k">"value"</span>: <span class="v">"xyz789"</span> },
+    { <span class="k">"key"</span>: <span class="v">"IMS_ORG"</span>,        <span class="k">"value"</span>: <span class="v">"ABC@AdobeOrg"</span> }
+] }</div>
+            </div>
+
+            <div class="s-cred-fields" id="credFields">
+              <div class="s-sec-label" style="margin-top:20px">Credentials — edit if needed</div>
+              <div class="s-grid2">
+                <div class="s-field">
+                  <label><span class="s-req">*</span> Client ID <i class="ti ti-circle-check ok-dot" id="ic-CLIENT_ID" style="display:none"></i><i class="ti ti-alert-triangle miss-dot" id="im-CLIENT_ID" style="display:none"></i></label>
+                  <input class="fi" id="f-CLIENT_ID" type="text" placeholder="9432100644eb4a53…" oninput="fEdit('CLIENT_ID')">
+                </div>
+                <div class="s-field">
+                  <label><span class="s-req">*</span> Client Secret <i class="ti ti-circle-check ok-dot" id="ic-CLIENT_SECRET" style="display:none"></i><i class="ti ti-alert-triangle miss-dot" id="im-CLIENT_SECRET" style="display:none"></i></label>
+                  <div class="fi-wrap">
+                    <input class="fi" id="f-CLIENT_SECRET" type="password" placeholder="Your client secret" oninput="fEdit('CLIENT_SECRET')">
+                    <button class="fi-eye" onclick="togglePwd('f-CLIENT_SECRET',this)" type="button"><i class="ti ti-eye"></i></button>
+                  </div>
+                </div>
+                <div class="s-field s-full">
+                  <label><span class="s-req">*</span> IMS Org ID <i class="ti ti-circle-check ok-dot" id="ic-IMS_ORG" style="display:none"></i><i class="ti ti-alert-triangle miss-dot" id="im-IMS_ORG" style="display:none"></i></label>
+                  <input class="fi" id="f-IMS_ORG" type="text" placeholder="A01E18EE5D44…@AdobeOrg" oninput="fEdit('IMS_ORG')">
+                </div>
+                <div class="s-field">
+                  <label>Technical Account ID <span style="font-weight:400;font-style:italic;text-transform:none">(optional)</span></label>
+                  <input class="fi" id="f-TECHNICAL_ACCOUNT_ID" type="text" placeholder="D70F…@techacct.adobe.com" oninput="fEdit('TECHNICAL_ACCOUNT_ID')">
+                </div>
+                <div class="s-field">
+                  <label>API Key</label>
+                  <input class="fi" id="f-API_KEY" type="text" placeholder="Auto-filled from Client ID" oninput="fEdit('API_KEY')">
+                </div>
+              </div>
+            </div>
+
+            <div class="ct" id="rawT" onclick="tog('rawT','rawC')" style="display:none"><i class="ti ti-chevron-right chev"></i> All keys detected in file</div>
+            <div class="cc" id="rawC"><div class="code" id="rawDump" style="max-height:180px;overflow-y:auto;margin-top:6px"></div></div>
+
+            <div class="s-alert" id="credAlert"><i class="ti ti-info-circle"></i><div id="credAlertText"></div></div>
+          </div>
+          <div class="s-card-foot">
+            <button class="s-btn" id="clearCredsBtn" onclick="clearCredsAll()" style="display:none"><i class="ti ti-x"></i> Clear</button>
+            <button class="s-btn" onclick="showManual()"><i class="ti ti-pencil"></i> Enter Manually</button>
+            <button class="s-btn s-btn-blue s-btn-lg" id="connectBtn" onclick="doConnect()" disabled><i class="ti ti-plug-connected"></i> Connect to AEP</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="s-connector" id="conn-1"></div>
+
+      <!-- Sandbox card (AEP path) -->
+      <div class="s-section" id="sec-sandbox">
+        <div class="s-card" id="card-sandbox">
+          <div class="s-card-head">
+            <div class="s-ch-num">2</div>
+            <div><div class="s-ch-title">Select Sandbox</div><div class="s-ch-meta" id="sandboxMeta">Choose which AEP sandbox to connect to</div></div>
+            <span class="s-ch-badge badge-blue">Step 2</span>
+          </div>
+          <div class="s-card-body">
+            <div class="s-field"><label>Sandbox</label><div id="sandboxFieldWrap"></div></div>
+            <div class="s-alert" id="sandboxAlert"><i class="ti ti-info-circle"></i><div id="sandboxAlertText"></div></div>
+          </div>
+          <div class="s-card-foot">
+            <button class="s-btn s-btn-blue s-btn-lg" id="loadSchemasBtn" onclick="doLoadSchemas()" disabled><i class="ti ti-database"></i> Load Schemas</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="s-connector" id="conn-2"></div>
+
+      <!-- Schema picker card (AEP path) -->
+      <div class="s-section" id="sec-schema">
+        <div class="s-card" id="card-schema">
+          <div class="s-card-head">
+            <div class="s-ch-num">3</div>
+            <div><div class="s-ch-title">Select Schema</div><div class="s-ch-meta" id="schemaMeta">Filter and pick the schema to map</div></div>
+            <span class="s-ch-badge badge-blue" id="schemaStepBadge">Step 3</span>
+          </div>
+          <div class="s-card-body">
+            <div class="filter-row">
+              <span class="filter-label">Type:</span>
+              <button class="pill-btn active" data-filter="custom" onclick="setFilter('custom')"><i class="ti ti-building"></i> Custom (Tenant)</button>
+              <button class="pill-btn" data-filter="standard" onclick="setFilter('standard')"><i class="ti ti-certificate"></i> Standard (Adobe OOTB)</button>
+              <button class="pill-btn" data-filter="all" onclick="setFilter('all')"><i class="ti ti-list"></i> All</button>
+            </div>
+            <div class="schema-search-wrap">
+              <i class="ti ti-search"></i>
+              <input type="text" class="schema-search" id="schemaSearch" placeholder="Search schemas by name…" oninput="filterSchemas()">
+            </div>
+            <div class="schema-list" id="schemaList">
+              <div class="schema-empty"><i class="ti ti-database-off"></i>Schemas will appear here after loading</div>
+            </div>
+            <div class="schema-footer" id="schemaFooter" style="display:none">
+              <span id="schemaCount"></span>
+              <span id="schemaSelected" style="color:#1473e6;font-weight:600"></span>
+            </div>
+            <div class="s-alert" id="schemaAlert"><i class="ti ti-info-circle"></i><div id="schemaAlertText"></div></div>
+          </div>
+          <div class="s-card-foot">
+            <button class="s-btn" onclick="resetFromSandbox()"><i class="ti ti-arrow-left"></i> Change Sandbox</button>
+            <button class="s-btn s-btn-green s-btn-lg" id="openToolBtn" onclick="goToStep2()" disabled>
+              <i class="ti ti-arrow-right"></i> Open in Schema Architect
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PATH B/C: FILE UPLOAD CARD ── -->
+      <div class="s-section" id="sec-upload">
+        <div class="s-card" id="card-upload">
+          <div class="s-card-head">
+            <div class="s-ch-num" id="uploadStepNum">1</div>
+            <div>
+              <div class="s-ch-title" id="uploadCardTitle">Upload your file</div>
+              <div class="s-ch-meta" id="uploadCardMeta">Drag and drop or browse to select your file</div>
+            </div>
+            <span class="s-ch-badge" id="uploadCardBadge" style="background:#e8a030;color:#fff">Required</span>
+          </div>
+          <div class="s-card-body">
+            <div class="s-dz" id="udz" onclick="document.getElementById('ufi').click()"
+              ondragover="udzOver(event)" ondragleave="udzOut()" ondrop="udzDrop(event)">
+              <div class="s-dz-icon"><i class="ti ti-file-spreadsheet" id="udzIcon"></i></div>
+              <div class="s-dz-title" id="udzTitle">Drag &amp; drop your file here</div>
+              <div class="s-dz-hint" id="udzHint">or click to browse (.xlsx · .xls · .csv · .json)</div>
+            </div>
+            <input type="file" id="ufi" accept=".xlsx,.xls,.csv,.json" style="display:none" onchange="onUFSel(this)">
+
+            <!-- Sheet selector (if multiple sheets) -->
+            <div class="sheet-sel-wrap" id="sheetSelWrap">
+              <label style="font-size:12px;color:#6e6e6e;font-weight:600">Select sheet:</label>
+              <select class="fi" id="uSheetSelect" style="width:200px;height:32px;font-size:12px" onchange="onSheetChange()"></select>
+            </div>
+
+            <!-- Info box explaining what will happen -->
+            <div class="upload-info-box" id="uploadInfoBox">
+              <div class="upload-info-row" id="uInfoRow1"><i class="ti ti-info-circle"></i> <span id="uInfoText1">We'll parse your file and load it into the mapping table.</span></div>
+              <div class="upload-info-row" id="uInfoRow2"><i class="ti ti-pencil"></i> <span id="uInfoText2">You can then edit, reclassify and map each field to XDM.</span></div>
+              <div class="upload-info-row" id="uInfoRow3"><i class="ti ti-file-spreadsheet"></i> <span id="uInfoText3">Export a clean, standardized mapping document when done.</span></div>
+            </div>
+
+            <div class="s-alert" id="uploadAlert"><i class="ti ti-info-circle"></i><div id="uploadAlertText"></div></div>
+          </div>
+          <div class="s-card-foot">
+            <button class="s-btn s-btn-lg" id="loadUploadBtn" onclick="goToStep2ByUpload()" disabled
+              style="background:#e8a030;color:#fff;border-color:#e8a030">
+              <i class="ti ti-arrow-right"></i> <span id="loadUploadLabel">Load &amp; Start Mapping</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /s-page -->
+  </div><!-- /step1Panel -->
+
+
+  <!-- ══════════════════════════════════════════
+       STEP 2 — Schema Mapping Tool
+       ══════════════════════════════════════════ -->
+  <div id="step2Panel">
+
+    <div class="ctrl-bar">
+      <div class="ctrl-step" style="min-width:260px;flex-shrink:0">
+        <div class="step-lbl"><span class="sn">1</span> Upload Source File</div>
+        <div class="ctrl-row">
+          <div class="f">
+            <label>File — data dict, mapping or XDM JSON</label>
+            <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.json" style="width:200px">
+          </div>
+          <div class="f" id="sheetBox" style="display:none">
+            <label>Sheet</label><select id="sheetSelect" style="width:120px"></select>
+          </div>
+          <button class="btn btn-primary" id="loadBtn" onclick="loadData()" style="display:none"><i class="ti ti-table-import"></i> Load</button>
+        </div>
+        <div class="up-note" id="upNote"></div>
+      </div>
+
+      <div class="ctrl-step">
+        <div class="step-lbl"><span class="sn">2</span> Field Group &amp; Object Mapping (Bulk Apply)</div>
+        <div class="ctrl-row">
+          <div class="f"><label>Tenant Node</label><input type="text" id="cTenant" placeholder="_myorg" style="width:100px"></div>
+          <div class="f"><label>Field Group Name</label><input type="text" id="cFieldGroup" placeholder="e.g. Customer Details FG" style="width:165px"></div>
+          <div class="f"><label>Classification</label>
+            <select id="cFGClass" style="width:95px"><option value="Custom">Custom</option><option value="OOTB">OOTB</option></select></div>
+          <div class="f"><label>Object Path</label><input type="text" id="cObjectPath" placeholder="e.g. customer.data.name" style="width:165px"></div>
+          <div class="f"><label>Is Array?</label><select id="cArray" style="width:200px" onchange="onArrChange()"><option value=""></option></select></div>
+          <div class="f"><label>Identity</label>
+            <select id="cIdentity" style="width:105px"><option value=""></option><option value="Primary">Primary</option><option value="Secondary">Secondary</option></select></div>
+          <button class="btn btn-primary" onclick="applyMapping()"><i class="ti ti-check"></i> Apply to Selected</button>
+        </div>
+        <div class="cfg-ctx none" id="cfgCtx"></div>
+        <div style="margin-top:6px">
+          <span id="metaToggle" onclick="toggleMetaFields()" style="font-size:10px;color:#1473e6;cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:3px">
+            <i class="ti ti-chevron-right" id="metaChevron" style="font-size:11px"></i> Export Metadata
+          </span>
+          <div id="metaFields" style="display:none;margin-top:8px">
+            <div class="ctrl-row" style="flex-wrap:wrap;gap:8px">
+              <div class="f"><label>Change Date</label><input type="text" id="mChangeDate" placeholder="DD/MM/YYYY" style="width:110px"></div>
+              <div class="f"><label>Consultant</label><input type="text" id="mConsultant" placeholder="Name" style="width:120px"></div>
+              <div class="f"><label>XDM Schema Name</label><input type="text" id="mSchemaName" placeholder="e.g. sch_profl_customer" style="width:160px"></div>
+              <div class="f"><label>XDM Schema Type</label>
+                <select id="mSchemaType" style="width:130px"><option value=""></option><option value="Profile">Profile</option><option value="ExperienceEvent">ExperienceEvent</option><option value="Lookup">Lookup</option></select></div>
+              <div class="f"><label>XDM Dataset Name</label><input type="text" id="mDatasetName" placeholder="e.g. ds_profl_customer" style="width:160px"></div>
+              <div class="f"><label>Source Table</label><input type="text" id="mSourceTable" placeholder="e.g. CRM_CUSTOMERS" style="width:140px"></div>
+              <div class="f"><label>Source</label><input type="text" id="mSource" placeholder="e.g. Salesforce" style="width:110px"></div>
+              <div class="f"><label>Upload Method</label><input type="text" id="mUploadMethod" placeholder="e.g. Batch" style="width:110px"></div>
+              <div class="f"><label>Update Frequency</label><input type="text" id="mUpdateFreq" placeholder="e.g. Daily" style="width:110px"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- STEP 3 TABLE -->
-<div class="tbl-wrap">
-  <div class="tbl-card">
-    <div class="tbl-topbar">
-      <div class="sec-title"><span class="sn">3</span> Mapping Table</div>
-      <div class="tbl-divider"></div>
-      <button class="btn btn-success" onclick="addRow()"><i class="ti ti-row-insert-bottom"></i> Add Row</button>
-      <button class="btn btn-success" onclick="openAddColModal()"><i class="ti ti-column-insert-right"></i> Add Column</button>
-      <button class="btn" onclick="openColPicker()">
-        <i class="ti ti-layout-columns"></i> Show/Hide Columns
-      </button>
-      <button class="btn" id="manageColsBtn" onclick="openManageColsModal()" style="display:none">
-        <i class="ti ti-star"></i> Custom Cols
-        <span id="customColCount" style="font-size:10px;background:#e8d000;color:#5a4a00;border-radius:3px;padding:0 4px;margin-left:2px"></span>
-      </button>
-      <div class="tbl-divider"></div>
-      <button class="btn btn-danger" id="delSelBtn" style="display:none" onclick="deleteSelected()">
-        <i class="ti ti-trash"></i> Delete Selected (<span id="delCount">0</span>)
-      </button>
-      <button class="btn btn-danger" id="clearFiltersBtn" onclick="clearAllFilters()" style="display:none">
-        <i class="ti ti-filter-off"></i> Clear All Filters
-      </button>
-      <span class="tbl-info"><span id="selCount">0</span> selected · <span id="rowCount">0</span> rows</span>
-    </div>
-
-    <div class="tbl-scroll" id="tblScroll">
-      <table class="mt">
-        <thead id="mtHead"></thead>
-        <tbody id="mtBody"></tbody>
-      </table>
-      <div class="empty" id="mtEmpty">
-        <i class="ti ti-table-off" style="font-size:38px"></i>
-        <p>Upload and load a source file,<br>or click <b>Add Row</b> to start manually.</p>
+    <div class="tbl-wrap">
+      <div class="tbl-card">
+        <div class="tbl-topbar">
+          <div class="sec-title"><span class="sn">3</span> Mapping Table</div>
+          <div class="tbl-divider"></div>
+          <button class="btn btn-success" onclick="addRow()"><i class="ti ti-row-insert-bottom"></i> Add Row</button>
+          <button class="btn btn-success" onclick="openAddColModal()"><i class="ti ti-column-insert-right"></i> Add Column</button>
+          <button class="btn" onclick="openColPicker()"><i class="ti ti-layout-columns"></i> Show/Hide Columns</button>
+          <button class="btn" id="manageColsBtn" onclick="openManageColsModal()" style="display:none">
+            <i class="ti ti-star"></i> Custom Cols
+            <span id="customColCount" style="font-size:10px;background:#e8d000;color:#5a4a00;border-radius:3px;padding:0 4px;margin-left:2px"></span>
+          </button>
+          <div class="tbl-divider"></div>
+          <button class="btn btn-danger" id="delSelBtn" style="display:none" onclick="deleteSelected()"><i class="ti ti-trash"></i> Delete Selected (<span id="delCount">0</span>)</button>
+          <button class="btn btn-danger" id="clearFiltersBtn" onclick="clearAllFilters()" style="display:none"><i class="ti ti-filter-off"></i> Clear All Filters</button>
+          <span class="tbl-info"><span id="selCount">0</span> selected · <span id="rowCount">0</span> rows</span>
+        </div>
+        <div class="tbl-scroll" id="tblScroll">
+          <table class="mt"><thead id="mtHead"></thead><tbody id="mtBody"></tbody></table>
+          <div class="empty" id="mtEmpty">
+            <i class="ti ti-table-off" style="font-size:38px"></i>
+            <p id="mtEmptyMsg">Use the panel above to upload a file or add rows manually.</p>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
+    <div class="hbar" id="hbar" onscroll="syncH()"><div class="hbar-inner" id="hbarInner"></div></div>
+    <div class="statusbar" id="statusbar"></div>
 
-<!-- SINGLE pinned horizontal scrollbar -->
-<div class="hbar" id="hbar" onscroll="syncH()">
-  <div class="hbar-inner" id="hbarInner"></div>
-</div>
-<div class="statusbar" id="statusbar"></div>
+  </div><!-- /step2Panel -->
 
-<!-- ADD COLUMN MODAL -->
+</div><!-- /wiz-panels -->
+
+<!-- MODALS -->
 <div class="modal-bg" id="addColModal">
   <div class="modal">
     <h3><i class="ti ti-column-insert-right" style="color:#1473e6"></i> Add Custom Column</h3>
     <div class="mf">
       <label>Column Name <span style="color:#d23f3f">*</span></label>
-      <input type="text" id="newColName" placeholder="e.g. DULE Labels, Notes, Priority"
-        onkeydown="if(event.key==='Enter')commitAddCol()">
+      <input type="text" id="newColName" placeholder="e.g. DULE Labels, Notes, Priority" onkeydown="if(event.key==='Enter')commitAddCol()">
       <div class="modal-hint">Appears after standard columns. Editable on every row. Included in export.</div>
     </div>
     <div class="modal-actions">
@@ -178,8 +603,6 @@
     </div>
   </div>
 </div>
-
-<!-- MANAGE COLUMNS MODAL -->
 <div class="modal-bg" id="manageColsModal">
   <div class="modal">
     <h3><i class="ti ti-columns-2" style="color:#1473e6"></i> Custom Columns</h3>
@@ -188,41 +611,27 @@
     <div class="mf">
       <label>Add another</label>
       <div style="display:flex;gap:6px">
-        <input type="text" id="newColName2" placeholder="Column name…" style="flex:1"
-          onkeydown="if(event.key==='Enter')commitAddCol2()">
+        <input type="text" id="newColName2" placeholder="Column name…" style="flex:1" onkeydown="if(event.key==='Enter')commitAddCol2()">
         <button class="btn btn-primary" style="height:32px" onclick="commitAddCol2()"><i class="ti ti-plus"></i></button>
       </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="closeModal('manageColsModal')">Done</button>
-    </div>
+    <div class="modal-actions"><button class="btn btn-primary" onclick="closeModal('manageColsModal')">Done</button></div>
   </div>
 </div>
-
-<!-- COLUMN PICKER MODAL -->
 <div class="modal-bg" id="colPickerModal">
   <div class="modal" style="width:460px;max-height:80vh;display:flex;flex-direction:column">
     <h3><i class="ti ti-layout-columns" style="color:#1473e6"></i> Show / Hide Columns</h3>
-    <p style="font-size:11px;color:#888;margin-bottom:10px">
-      Choose which columns to display. Hidden columns are preserved in your data and included in exports.
-      Column order never changes.
-    </p>
+    <p style="font-size:11px;color:#888;margin-bottom:10px">Choose which columns to display. Hidden columns are preserved in your data and included in exports.</p>
     <div style="display:flex;gap:8px;margin-bottom:10px">
-      <button class="btn btn-primary" style="height:28px;font-size:11px" onclick="showAllCols()">
-        <i class="ti ti-eye"></i> Show All
-      </button>
-      <button class="btn" style="height:28px;font-size:11px" onclick="hideAllCols()">
-        <i class="ti ti-eye-off"></i> Default View
-      </button>
+      <button class="btn btn-primary" style="height:28px;font-size:11px" onclick="showAllCols()"><i class="ti ti-eye"></i> Show All</button>
+      <button class="btn" style="height:28px;font-size:11px" onclick="hideAllCols()"><i class="ti ti-eye-off"></i> Default View</button>
     </div>
     <div id="colPickerList" style="flex:1;overflow-y:auto;padding-right:4px"></div>
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="closeModal('colPickerModal')">Done</button>
-    </div>
+    <div class="modal-actions"><button class="btn btn-primary" onclick="closeModal('colPickerModal')">Done</button></div>
   </div>
 </div>
 
-<!-- JS: load order matters — column-schema first, then parser/filter/render/export, app last -->
+<!-- JS FILES -->
 <script src="js/column-schema.js"></script>
 <script src="js/parser.js"></script>
 <script src="js/filter.js"></script>
@@ -230,5 +639,620 @@
 <script src="js/export.js"></script>
 <script src="js/app.js"></script>
 
+<!-- SETUP + WIZARD LOGIC -->
+<script>
+/* ─── STATE ─── */
+var currentMode = null;   // 'aep' | 'standardize' | 'dictionary'
+var setupRaw = {}, token = null, allSchemas = [], selectedSchema = null, currentFilter = 'custom';
+var pendingRows = [], pendingWB = null;
+const REQ = ['CLIENT_ID','CLIENT_SECRET','IMS_ORG'];
+const g = id => document.getElementById(id);
+
+/* ─── PROXY CHECK ─── */
+window.addEventListener('load', async () => {
+  const el = g('proxyStatus');
+  try {
+    const r = await fetch('/api/ping');
+    const d = await r.json();
+    if (d.server === 'aep-proxy') {
+      el.className = 'tb-status ok';
+      el.innerHTML = '<i class="ti ti-circle-check"></i> Proxy ready';
+    } else {
+      el.className = 'tb-status err';
+      el.innerHTML = '<i class="ti ti-alert-circle"></i> Wrong server — run python server.py';
+    }
+  } catch {
+    el.className = 'tb-status err';
+    el.innerHTML = '<i class="ti ti-alert-circle"></i> Run python server.py';
+  }
+});
+
+/* ─── MODE SELECTION ─── */
+const MODE_CONFIG = {
+  aep: {
+    step1Label : 'Connect to AEP',
+    step1Title : 'Connect to AEP',
+    step1Sub   : 'Authenticate and select a schema from your sandbox',
+    showAep    : true
+  },
+  standardize: {
+    step1Label : 'Upload Mapping Doc',
+    step1Title : 'Upload Mapping Document',
+    step1Sub   : 'Upload your existing mapping file to standardize it',
+    showAep    : false,
+    uploadTitle: 'Upload Existing Mapping Document',
+    uploadMeta : 'Accepts Excel, CSV or JSON mapping exports',
+    uploadHint : '.xlsx · .xls · .csv · .json',
+    uploadIcon : 'ti-file-text',
+    badgeColor : '#e8a030',
+    btnColor   : '#e8a030',
+    loadLabel  : 'Load &amp; Standardize',
+    info1      : 'We\'ll parse your mapping file and load all rows into the editor.',
+    info2      : 'Review, reclassify, rename and restructure each field.',
+    info3      : 'Export a clean, AEP-standardized mapping document.'
+  },
+  dictionary: {
+    step1Label : 'Upload Data Dictionary',
+    step1Title : 'Upload Data Dictionary',
+    step1Sub   : 'Upload your source columns and data types to start mapping',
+    showAep    : false,
+    uploadTitle: 'Upload Data Dictionary',
+    uploadMeta : 'Accepts Excel or CSV files with source columns and data types',
+    uploadHint : '.xlsx · .xls · .csv · .json',
+    uploadIcon : 'ti-table-column',
+    badgeColor : '#2d9d78',
+    btnColor   : '#2d9d78',
+    loadLabel  : 'Load &amp; Start Mapping',
+    info1      : 'We\'ll detect source column names and data types from your file.',
+    info2      : 'Map each source field to AEP XDM field names and paths.',
+    info3      : 'Add field groups, identities, and export a complete mapping doc.'
+  }
+};
+
+function selectMode(mode) {
+  currentMode = mode;
+  const cfg = MODE_CONFIG[mode];
+
+  // Hide mode panel, show step 1
+  g('modePanel').style.display  = 'none';
+  g('step1Panel').style.display = 'flex';
+
+  // Show wizard breadcrumb
+  const wb = g('wizBar');
+  wb.style.display = 'flex';
+  g('wizChange').style.display = 'flex';
+  g('wl1').textContent = cfg.step1Label;
+  g('wn1').textContent = '1';
+  g('ws1').className = 'wiz-step ws-active';
+  g('ws2').className = 'wiz-step';
+
+  // Update step 1 hero
+  g('s1Title').textContent = cfg.step1Title;
+  g('s1Sub').textContent   = cfg.step1Sub;
+
+  if (cfg.showAep) {
+    // Show AEP sections, hide upload
+    g('sec-creds').classList.add('visible');
+    g('sec-upload').classList.remove('visible');
+  } else {
+    // Hide ALL AEP sections, show upload card only
+    g('sec-creds').classList.remove('visible');
+    g('sec-sandbox').classList.remove('visible');
+    g('sec-schema').classList.remove('visible');
+    g('conn-1').style.display = 'none';
+    g('conn-2').style.display = 'none';
+
+    // Configure upload card for this mode
+    g('uploadCardTitle').textContent  = cfg.uploadTitle;
+    g('uploadCardMeta').textContent   = cfg.uploadMeta;
+    g('udzHint').textContent          = 'or click to browse (' + cfg.uploadHint + ')';
+    g('udzIcon').className            = 'ti ' + cfg.uploadIcon;
+    g('udzTitle').textContent         = 'Drag & drop your file here';
+    g('uploadCardBadge').style.background = cfg.badgeColor;
+    g('loadUploadBtn').style.background   = cfg.btnColor;
+    g('loadUploadBtn').style.borderColor  = cfg.btnColor;
+    g('loadUploadLabel').innerHTML        = cfg.loadLabel;
+    g('uInfoText1').textContent = cfg.info1;
+    g('uInfoText2').textContent = cfg.info2;
+    g('uInfoText3').textContent = cfg.info3;
+
+    g('sec-upload').classList.add('visible');
+  }
+}
+
+function goToModeSelect() {
+  // Reset and go back to mode selection
+  currentMode = null;
+  g('modePanel').style.display  = 'flex';
+  g('step1Panel').style.display = 'none';
+  g('step2Panel').style.display = 'none';
+  g('tb1').style.display  = 'flex';
+  g('tb2').style.display  = 'none';
+  g('wizBar').style.display = 'none';
+  // Reset AEP state
+  token = null; allSchemas = []; selectedSchema = null;
+  hideSection('sec-sandbox'); hideSection('sec-schema');
+  markActive('card-creds');
+  g('connectBtn').innerHTML = '<i class="ti ti-plug-connected"></i> Connect to AEP';
+  g('connectBtn').disabled = !REQ.every(k => !!fv(k));
+  // Reset upload state
+  pendingRows = []; pendingWB = null;
+  g('udz').classList.remove('ok','ok-amber');
+  g('udzIcon').className = 'ti ti-file-spreadsheet';
+  g('udzTitle').textContent = 'Drag & drop your file here';
+  g('ufi').value = '';
+  g('loadUploadBtn').disabled = true;
+  g('sheetSelWrap').classList.remove('show');
+  alertHide('uploadAlert');
+}
+
+/* ─── WIZARD TRANSITIONS ─── */
+async function goToStep2() {
+  // Called from AEP path (schema selected)
+  if (!selectedSchema) return;
+  _switchToStep2();
+  await loadSchemaFromAEP(selectedSchema);
+}
+
+async function goToStep2ByUpload() {
+  // Called from file upload path (B/C)
+  if (!pendingRows.length) return;
+  _switchToStep2();
+  // Load the pending rows into the table
+  pushH();
+  data = pendingRows.slice();
+  data.forEach(r => customCols.forEach(c => { if (r[c] === undefined) r[c] = ''; }));
+  filterValues = {};
+  initGroupOrder();
+  renderTable();
+  const cfg = MODE_CONFIG[currentMode] || {};
+  const msgMap = {
+    standardize: 'Mapping doc loaded — review, standardize and export below',
+    dictionary : 'Data dictionary loaded — map source columns to AEP XDM fields'
+  };
+  note('Loaded <b>' + data.length + '</b> rows. ' + (msgMap[currentMode] || ''));
+  setStatus(data.length + ' rows loaded from file — ready to map');
+}
+
+function _switchToStep2() {
+  g('step1Panel').style.display = 'none';
+  g('step2Panel').style.display = 'flex';
+  g('tb1').style.display = 'none';
+  g('tb2').style.display = 'flex';
+  g('ws1').className = 'wiz-step ws-done';
+  g('wn1').textContent = '✓';
+  g('ws2').className  = 'wiz-step ws-active';
+  setTimeout(updateHbar, 50);
+}
+
+function goToStep1() {
+  if (!g('ws1').classList.contains('ws-done')) return;
+  g('step2Panel').style.display = 'none';
+  g('step1Panel').style.display = 'flex';
+  g('tb2').style.display = 'none';
+  g('tb1').style.display = 'flex';
+  g('ws1').className = 'wiz-step ws-active';
+  g('wn1').textContent = '1';
+  g('ws2').className  = 'wiz-step';
+}
+
+/* ─── AEP LOAD SCHEMA ─── */
+async function loadSchemaFromAEP(schema) {
+  const schemaId  = schema.$id || schema['meta:altId'] || '';
+  const container = schema._source === 'standard' ? 'global' : 'tenant';
+  const sandbox   = getSandboxName();
+  const title     = schema.title || schemaId;
+
+  const nameEl = g('schemaName');
+  if (nameEl) nameEl.value = title;
+  note('Loading <b>' + title + '</b> from AEP…');
+
+  try {
+    const res = await fetch(
+      'https://platform.adobe.io/data/foundation/schemaregistry/' + container + '/schemas/' + encodeURIComponent(schemaId),
+      {
+        headers:{
+          'Authorization'  : 'Bearer ' + token,
+          'x-api-key'      : fv('CLIENT_ID'),
+          'x-gw-ims-org-id': fv('IMS_ORG'),
+          'x-sandbox-name' : sandbox,
+          'Accept'         : 'application/vnd.adobe.xed-full+json; version=1'
+        }
+      }
+    );
+    if (!res.ok) {
+      const eb = await res.json().catch(() => ({}));
+      throw new Error('Schema fetch failed (' + res.status + '): ' + (eb.title || eb.type || res.statusText));
+    }
+    const schemaObj = await res.json();
+    const result    = parseAPISchema(schemaObj);
+
+    pushH();
+    data = result.rows;
+    data.forEach(r => customCols.forEach(c => { if (r[c] === undefined) r[c] = ''; }));
+    filterValues = {};
+    initGroupOrder();
+    renderTable();
+
+    const fgInfo = result.fieldGroupCount
+      ? ' · ' + result.fieldGroupCount + ' field group' + (result.fieldGroupCount !== 1 ? 's' : '') : '';
+    note('Loaded <b>' + data.length + '</b> fields from <b>' + (schemaObj.title || title) + '</b>' + fgInfo);
+    setStatus('Schema "' + (schemaObj.title || title) + '" loaded — ' + data.length + ' fields');
+  } catch(err) {
+    note('<span style="color:#c50c00"><i class="ti ti-alert-circle"></i> ' + err.message + '</span>');
+    setStatus('Schema load failed: ' + err.message, true);
+  }
+}
+
+/* ─── FILE UPLOAD (Paths B/C) ─── */
+function udzOver(e) { e.preventDefault(); g('udz').classList.add('over'); }
+function udzOut()   { g('udz').classList.remove('over'); }
+function udzDrop(e) { e.preventDefault(); udzOut(); if (e.dataTransfer.files[0]) doUploadFile(e.dataTransfer.files[0]); }
+function onUFSel(input) { if (input.files[0]) doUploadFile(input.files[0]); }
+
+function doUploadFile(file) {
+  alertHide('uploadAlert');
+  const nm = file.name.toLowerCase();
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      if (nm.endsWith('.json')) {
+        const obj = JSON.parse(ev.target.result);
+        if (Array.isArray(obj)) {
+          const result = parseAEPExport(obj);
+          pendingRows = result.rows;
+        } else {
+          pendingRows = parseXDM(obj);
+        }
+        pendingWB = null;
+        g('sheetSelWrap').classList.remove('show');
+        setUploadReady(file.name, pendingRows.length);
+      } else {
+        pendingWB = XLSX.read(ev.target.result, { type: 'binary' });
+        if (pendingWB.SheetNames.length > 1) {
+          // Multiple sheets — show selector
+          g('uSheetSelect').innerHTML = pendingWB.SheetNames.map(n => `<option>${n}</option>`).join('');
+          g('sheetSelWrap').classList.add('show');
+        } else {
+          g('sheetSelWrap').classList.remove('show');
+        }
+        parseUploadSheet(pendingWB.SheetNames[0], file.name);
+      }
+    } catch(err) {
+      alert_('uploadAlert', 'error', 'Could not parse file: ' + err.message);
+    }
+  };
+  if (nm.endsWith('.json')) r.readAsText(file);
+  else r.readAsBinaryString(file);
+}
+
+function onSheetChange() {
+  const sheet = g('uSheetSelect').value;
+  parseUploadSheet(sheet, '');
+}
+
+function parseUploadSheet(sheetName, filename) {
+  if (!pendingWB) return;
+  const sheet = pendingWB.Sheets[sheetName];
+  const raw   = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+  if (!raw.length) { alert_('uploadAlert', 'warning', 'This sheet appears to be empty.'); return; }
+  pendingRows = processSourceSheet(raw);
+  setUploadReady(filename || sheetName, pendingRows.length);
+}
+
+function setUploadReady(label, count) {
+  const isAmber = currentMode === 'standardize';
+  g('udz').className = 's-dz ' + (isAmber ? 'ok-amber' : 'ok');
+  g('udzIcon').className = 'ti ti-circle-check';
+  g('udzTitle').textContent = label;
+  g('loadUploadBtn').disabled = count === 0;
+  if (count > 0) {
+    alert_('uploadAlert', 'success',
+      '<b>' + count + ' rows detected.</b> Click the button below to load them into the mapping table.');
+  } else {
+    alert_('uploadAlert', 'warning', 'No rows detected in this file or sheet. Check the format and try again.');
+  }
+}
+
+/* ─── AEP CREDENTIAL HELPERS ─── */
+const fv = k => (g('f-'+k)||{value:''}).value.trim();
+function fset(k, v) {
+  const el = g('f-'+k); if (!el) return;
+  el.value = Array.isArray(v) ? v.join(', ') : (v == null ? '' : String(v));
+  fStatus(k);
+}
+function fStatus(k) {
+  const v = fv(k), el = g('f-'+k); if (!el) return;
+  el.classList.toggle('filled', !!v);
+  el.classList.toggle('empty', !v && REQ.includes(k));
+  const ok = g('ic-'+k), miss = g('im-'+k);
+  if (ok)   ok.style.display   = v ? 'inline' : 'none';
+  if (miss) miss.style.display = (!v && REQ.includes(k)) ? 'inline' : 'none';
+}
+function fEdit(k) { fStatus(k); checkReady(); }
+function checkReady() { g('connectBtn').disabled = !REQ.every(k => !!fv(k)); }
+function tog(tid, cid) { g(tid).classList.toggle('open'); g(cid).classList.toggle('open'); }
+function togglePwd(id, btn) {
+  const el = g(id), show = el.type === 'text';
+  el.type = show ? 'password' : 'text';
+  btn.querySelector('i').className = show ? 'ti ti-eye' : 'ti ti-eye-off';
+}
+function alert_(id, type, msg) {
+  const el = g(id);
+  el.className = 's-alert show a-' + type;
+  el.querySelector('i').className = ({info:'ti ti-info-circle',success:'ti ti-circle-check',error:'ti ti-alert-circle',warning:'ti ti-alert-triangle'})[type];
+  g(id+'Text').innerHTML = msg;
+}
+function alertHide(id) { g(id).classList.remove('show'); }
+function showSection(id) {
+  g(id).classList.add('visible');
+  setTimeout(() => g(id).scrollIntoView({ behavior:'smooth', block:'start' }), 60);
+  const m = {'sec-sandbox':'conn-1','sec-schema':'conn-2'};
+  if (m[id]) g(m[id]).style.display = 'block';
+}
+function hideSection(id) {
+  g(id).classList.remove('visible');
+  const m = {'sec-sandbox':'conn-1','sec-schema':'conn-2'};
+  if (m[id]) g(m[id]).style.display = 'none';
+}
+function markDone(id)   { g(id).classList.add('done'); }
+function markActive(id) { g(id).classList.remove('done'); }
+
+/* ─── FILE HANDLING (AEP path credentials) ─── */
+function dzOver(e) { e.preventDefault(); g('dz').classList.add('over'); }
+function dzOut()   { g('dz').classList.remove('over'); }
+function dzDrop(e) { e.preventDefault(); dzOut(); if (e.dataTransfer.files[0]) doFile(e.dataTransfer.files[0]); }
+function onFSel(input) { if (input.files[0]) doFile(input.files[0]); }
+function doFile(file) {
+  const ok = ['.json','.postman_environment'].some(ext => file.name.toLowerCase().endsWith(ext));
+  if (!ok) { alert_('credAlert','error','Please upload a .json or .postman_environment file.'); return; }
+  const r = new FileReader();
+  r.onload = e => {
+    try { parseEnv(JSON.parse(e.target.result), file.name); }
+    catch { alert_('credAlert','error','Could not parse file.'); }
+  };
+  r.readAsText(file);
+}
+function parseEnv(envData, filename) {
+  setupRaw = {};
+  (envData.values || envData.environment?.values || []).forEach(v => {
+    if (!v.key) return;
+    setupRaw[v.key] = Array.isArray(v.value) ? v.value.join(', ') : (v.value ?? '');
+  });
+  if (!Object.keys(setupRaw).length)
+    Object.entries(envData).forEach(([k,v]) => { if (typeof v==='string') setupRaw[k]=v; });
+  if (!setupRaw.CLIENT_ID && setupRaw.API_KEY) setupRaw.CLIENT_ID = setupRaw.API_KEY;
+  if (!setupRaw.API_KEY && setupRaw.CLIENT_ID) setupRaw.API_KEY   = setupRaw.CLIENT_ID;
+  if (!setupRaw.IMS_ORG  && setupRaw.ORG_ID)  setupRaw.IMS_ORG   = setupRaw.ORG_ID;
+  ['CLIENT_ID','CLIENT_SECRET','IMS_ORG','TECHNICAL_ACCOUNT_ID','API_KEY'].forEach(k => fset(k, setupRaw[k]||''));
+  g('rawDump').innerHTML = Object.entries(setupRaw).map(([k,v]) => {
+    const m = k==='CLIENT_SECRET' ? '••••'+v.slice(-4) : v.length>50 ? v.slice(0,30)+'…' : v;
+    return `<span class="k">"${k}"</span>: <span class="v">"${m}"</span>`;
+  }).join('\n') || '<span class="c">No keys found</span>';
+  g('rawT').style.display = 'flex';
+  g('dz').classList.add('ok');
+  g('dzIcon').className = 'ti ti-circle-check';
+  g('dzTitle').textContent = filename;
+  g('credFields').classList.add('show');
+  g('clearCredsBtn').style.display = 'inline-flex';
+  const missing = REQ.filter(k => !setupRaw[k]);
+  if (missing.length)
+    alert_('credAlert','warning', `File parsed. Fill in missing fields: <strong>${missing.join(', ')}</strong>`);
+  else
+    alert_('credAlert','success', 'Credentials loaded. Click <strong>Connect to AEP</strong>.');
+  checkReady();
+}
+function showManual() {
+  g('credFields').classList.add('show');
+  g('clearCredsBtn').style.display = 'inline-flex';
+  alert_('credAlert','info','Fill in your credentials, then click <strong>Connect to AEP</strong>.');
+}
+function clearCredsAll() {
+  setupRaw = {};
+  ['CLIENT_ID','CLIENT_SECRET','IMS_ORG','TECHNICAL_ACCOUNT_ID','API_KEY'].forEach(k => fset(k,''));
+  g('credFields').classList.remove('show');
+  g('dz').classList.remove('ok');
+  g('dzIcon').className = 'ti ti-file-type-json';
+  g('dzTitle').textContent = 'Drag & drop your Postman environment file here';
+  g('fi').value = ''; g('clearCredsBtn').style.display = 'none';
+  g('rawT').style.display = 'none';
+  alertHide('credAlert'); checkReady();
+  markActive('card-creds'); hideSection('sec-sandbox'); hideSection('sec-schema');
+}
+
+/* ─── AEP CONNECT ─── */
+async function doConnect() {
+  const btn = g('connectBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Connecting…';
+  alertHide('credAlert');
+  const clientId = fv('CLIENT_ID'), secret = fv('CLIENT_SECRET'), imsOrg = fv('IMS_ORG');
+  try {
+    alert_('credAlert','info','Authenticating with Adobe IMS…');
+    const tokenRes = await fetch('/api/token', {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body: new URLSearchParams({
+        grant_type:'client_credentials', client_id:clientId, client_secret:secret,
+        scope:'openid,AdobeID,read_organizations,additional_info.projectedProductContext,session'
+      })
+    });
+    let tokenData;
+    try { tokenData = await tokenRes.json(); }
+    catch { throw new Error('Proxy returned non-JSON. Make sure python server.py is running.'); }
+    if (!tokenData.access_token)
+      throw new Error(`IMS auth failed (${tokenRes.status}): ${tokenData.error_description||tokenData.error||'No token'}`);
+    token = tokenData.access_token;
+
+    alert_('credAlert','info','Fetching available sandboxes…');
+    let sandboxes = null;
+    try {
+      const sbRes = await fetch('https://platform.adobe.io/data/foundation/sandbox-management/sandboxes', {
+        headers:{'Authorization':`Bearer ${token}`,'x-api-key':clientId,'x-gw-ims-org-id':imsOrg}
+      });
+      if (sbRes.ok) {
+        const sbData = await sbRes.json();
+        sandboxes = (sbData.sandboxes||sbData.items||[]).filter(s=>s.state==='active');
+      }
+    } catch {}
+
+    buildSandboxUI(sandboxes, setupRaw.SANDBOX_NAME||'');
+    markDone('card-creds'); alertHide('credAlert');
+    btn.innerHTML = '<i class="ti ti-check"></i> Connected';
+    showSection('sec-sandbox');
+  } catch(err) {
+    alert_('credAlert','error', err.message||'Connection failed.');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-plug-connected"></i> Connect to AEP';
+  }
+}
+
+/* ─── SANDBOX ─── */
+function buildSandboxUI(sandboxes, defaultVal) {
+  const wrap = g('sandboxFieldWrap'), loadBtn = g('loadSchemasBtn');
+  if (sandboxes && sandboxes.length) {
+    const sel = document.createElement('select');
+    sel.className = 'fi'; sel.id = 'sandboxSelect';
+    sel.innerHTML = '<option value="">— select a sandbox —</option>';
+    sandboxes.forEach(sb => {
+      const opt = document.createElement('option');
+      opt.value = sb.name;
+      opt.textContent = `${sb.title||sb.name}  [${sb.type==='production'?'Production':'Development'}]`;
+      sel.appendChild(opt);
+    });
+    if (defaultVal && sandboxes.find(s=>s.name===defaultVal)) sel.value = defaultVal;
+    sel.onchange = () => { loadBtn.disabled = !sel.value; };
+    wrap.innerHTML = ''; wrap.appendChild(sel);
+    loadBtn.disabled = !sel.value;
+    g('sandboxMeta').textContent = `${sandboxes.length} active sandbox${sandboxes.length!==1?'es':''} found`;
+  } else {
+    wrap.innerHTML = `<input class="fi" id="sandboxInput" type="text"
+      placeholder="e.g. prod, governance-poc"
+      value="${defaultVal}"
+      oninput="g('loadSchemasBtn').disabled=!this.value.trim()">
+      <div style="font-size:11px;color:#6e6e6e;margin-top:5px">
+        <i class="ti ti-info-circle" style="font-size:12px;vertical-align:-1px"></i>
+        Sandbox list not available — enter the sandbox name manually
+      </div>`;
+    loadBtn.disabled = !defaultVal;
+  }
+}
+function getSandboxName() {
+  const sel = g('sandboxSelect'), inp = g('sandboxInput');
+  return sel ? sel.value : (inp ? inp.value.trim() : '');
+}
+
+/* ─── LOAD SCHEMAS ─── */
+async function doLoadSchemas() {
+  const sandbox = getSandboxName(); if (!sandbox) return;
+  const btn = g('loadSchemasBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Loading…';
+  alertHide('sandboxAlert');
+  try {
+    await loadSchemasByFilter(currentFilter, sandbox);
+    markDone('card-sandbox');
+    showSection('sec-schema');
+    g('schemaMeta').textContent = `Sandbox: ${sandbox} · ${allSchemas.length} schema${allSchemas.length!==1?'s':''} loaded`;
+    g('schemaStepBadge').className = 's-ch-badge badge-green';
+  } catch(err) {
+    alert_('sandboxAlert','error', err.message||'Failed to load schemas.');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-database"></i> Load Schemas';
+}
+async function loadSchemasByFilter(filter, sandbox) {
+  const clientId = fv('CLIENT_ID'), imsOrg = fv('IMS_ORG');
+  const headers = {
+    'Authorization':`Bearer ${token}`,'x-api-key':clientId,
+    'x-gw-ims-org-id':imsOrg,'x-sandbox-name':sandbox,
+    'Accept':'application/vnd.adobe.xed-id+json'
+  };
+  let schemas = [];
+  if (filter==='custom'||filter==='all') {
+    const t = await fetchAllPages('https://platform.adobe.io/data/foundation/schemaregistry/tenant/schemas', headers);
+    t.forEach(s=>{ s._source='custom'; }); schemas = schemas.concat(t);
+  }
+  if (filter==='standard'||filter==='all') {
+    const gl = await fetchAllPages('https://platform.adobe.io/data/foundation/schemaregistry/global/schemas', headers);
+    gl.forEach(s=>{ s._source='standard'; }); schemas = schemas.concat(gl);
+  }
+  allSchemas = schemas; selectedSchema = null;
+  g('openToolBtn').disabled = true;
+  renderSchemas(allSchemas);
+}
+async function fetchAllPages(baseUrl, headers) {
+  let results=[], start=0, limit=100;
+  while(true) {
+    const res = await fetch(`${baseUrl}?orderby=title&start=${start}&limit=${limit}`, {headers});
+    if (!res.ok) { const b=await res.json().catch(()=>({})); throw new Error(`Schema Registry (${res.status}): ${b.title||b.type||res.statusText}`); }
+    const d = await res.json();
+    const page = d.results||(Array.isArray(d)?d:[]);
+    results = results.concat(page);
+    if (page.length < limit) break;
+    start += limit;
+  }
+  return results;
+}
+
+/* ─── FILTER / RENDER SCHEMAS ─── */
+function setFilter(filter) {
+  currentFilter = filter;
+  document.querySelectorAll('.pill-btn').forEach(b => b.classList.toggle('active', b.dataset.filter===filter));
+  if (getSandboxName() && allSchemas.length>0) g('loadSchemasBtn').click();
+}
+function schemaType(s) {
+  const c=(s['meta:class']||s.class||'').toLowerCase();
+  if(c.includes('profile')) return 'Profile';
+  if(c.includes('experienceevent')) return 'Event';
+  if(c.includes('lookup')||c.includes('record')) return 'Lookup';
+  return 'Other';
+}
+function pillCls(s) {
+  if(s._source==='standard') return 'p-std';
+  return {Profile:'p-profile',Event:'p-event',Lookup:'p-lookup',Other:'p-other'}[schemaType(s)]||'p-other';
+}
+function pillLabel(s) { return s._source==='standard'?'Standard':schemaType(s); }
+function renderSchemas(list) {
+  const c=g('schemaList'), footer=g('schemaFooter');
+  if(!list.length){c.innerHTML='<div class="schema-empty"><i class="ti ti-database-off"></i>No schemas found for this filter.</div>';footer.style.display='none';return;}
+  c.innerHTML = list.map((s,i)=>{
+    const name=s.title||s['meta:title']||s.$id||'Unnamed';
+    const id=(s.$id||'').split('/').pop();
+    return `<div class="sitem" id="si-${i}" onclick="selectSchema(${i})">
+      <div class="si-icon"><i class="ti ti-table-alias"></i></div>
+      <div style="flex:1;min-width:0"><div class="si-name" title="${name}">${name}</div><div class="si-meta">${id||'schema'}</div></div>
+      <span class="spill ${pillCls(s)}">${pillLabel(s)}</span>
+      <i class="ti ti-check si-check"></i>
+    </div>`;
+  }).join('');
+  g('schemaCount').textContent=`${list.length} schema${list.length!==1?'s':''}`;
+  g('schemaSelected').textContent='';
+  footer.style.display='flex';
+}
+function filterSchemas() {
+  const q=g('schemaSearch').value.toLowerCase();
+  const list=q?allSchemas.filter(s=>(s.title||s.$id||'').toLowerCase().includes(q)):allSchemas;
+  renderSchemas(list);
+  if(selectedSchema){const i=list.indexOf(selectedSchema);if(i>=0)g(`si-${i}`)?.classList.add('sel');}
+  g('schemaCount').textContent=q?`${list.length} of ${allSchemas.length}`:`${allSchemas.length} schema${allSchemas.length!==1?'s':''}`;
+}
+function selectSchema(i) {
+  document.querySelectorAll('.sitem.sel').forEach(el=>el.classList.remove('sel'));
+  const q=g('schemaSearch').value.toLowerCase();
+  const list=q?allSchemas.filter(s=>(s.title||s.$id||'').toLowerCase().includes(q)):allSchemas;
+  selectedSchema=list[i]||null;
+  if(selectedSchema){g(`si-${i}`).classList.add('sel');g('schemaSelected').textContent=`Selected: ${selectedSchema.title||selectedSchema.$id}`;}
+  g('openToolBtn').disabled=!selectedSchema;
+}
+function resetFromSandbox() {
+  allSchemas=[];selectedSchema=null;
+  g('schemaList').innerHTML='<div class="schema-empty"><i class="ti ti-database-off"></i>Schemas will appear here after loading</div>';
+  g('schemaFooter').style.display='none';
+  g('openToolBtn').disabled=true;
+  markActive('card-sandbox');
+  g('schemaStepBadge').className='s-ch-badge badge-blue';
+  hideSection('sec-schema');
+  g('loadSchemasBtn').disabled=false;
+}
+</script>
 </body>
 </html>
