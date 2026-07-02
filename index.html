@@ -902,6 +902,8 @@ function onUFSel(input) { if (input.files[0]) doUploadFile(input.files[0]); }
 
 function doUploadFile(file) {
   alertHide('uploadAlert');
+  const banner = document.getElementById('tenantPlaceholderBanner');
+  if (banner) banner.style.display = 'none';
   const nm = file.name.toLowerCase();
   const r = new FileReader();
   r.onload = ev => {
