@@ -173,14 +173,23 @@ function applyTenantReplacement(){
   const newTenant='_'+raw.replace(/^_/,'');
   const placeholder=input.dataset.placeholder||'';
   if(!placeholder){setStatus('No placeholder to replace',true);return;}
-  jsonRows=jsonRows.map(r=>{
-    const row={...r};
-    if(row["XDM Column Path"])row["XDM Column Path"]=row["XDM Column Path"].split(placeholder).join(newTenant);
-    if(row.__objectPath)row.__objectPath=row.__objectPath.split(placeholder).join(newTenant);
-    return row;
-  });
+  function replacePlaceholder(rows){
+    return rows.map(r=>{
+      const row={...r};
+      if(row["XDM Column Path"])row["XDM Column Path"]=row["XDM Column Path"].split(placeholder).join(newTenant);
+      if(row.__objectPath)row.__objectPath=row.__objectPath.split(placeholder).join(newTenant);
+      return row;
+    });
+  }
+  const isPending=input.dataset.mode==='pending';
+  if(isPending){
+    pendingRows=replacePlaceholder(pendingRows);
+    setUploadReady('',pendingRows.length);
+  } else {
+    jsonRows=replacePlaceholder(jsonRows);
+    note(`AEP Schema Export · Tenant: <b>${esc(newTenant)}</b> · ${jsonRows.length} fields`);
+  }
   document.getElementById('tenantPlaceholderBanner').style.display='none';
-  note(`AEP Schema Export · Tenant: <b>${esc(newTenant)}</b> · ${jsonRows.length} fields`);
 }
 
 function loadData(){

@@ -911,6 +911,18 @@ function doUploadFile(file) {
         if (Array.isArray(obj)) {
           const result = parseAEPExport(obj);
           pendingRows = result.rows;
+          // Show placeholder tenant banner if needed
+          const banner = document.getElementById('tenantPlaceholderBanner');
+          if (banner) {
+            if (/[<>]/.test(result.tenant)) {
+              document.getElementById('tenantPlaceholderInput').value = '';
+              document.getElementById('tenantPlaceholderInput').dataset.placeholder = result.tenant;
+              document.getElementById('tenantPlaceholderInput').dataset.mode = 'pending';
+              banner.style.display = 'flex';
+            } else {
+              banner.style.display = 'none';
+            }
+          }
         } else {
           pendingRows = parseXDM(obj);
         }
