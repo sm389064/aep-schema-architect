@@ -133,7 +133,18 @@ function setupFileInput(){
             const fgCount=result.fieldGroupCount;
             document.getElementById('sheetBox').style.display='none';
             document.getElementById('loadBtn').style.display='inline-flex';
-            note(`AEP Schema Export · Tenant: <b>${tenant}</b> · ${jsonRows.length} fields · ${fgCount} field groups`);
+            // Check if tenant is a placeholder (contains angle brackets)
+            const tenantBanner=document.getElementById('tenantPlaceholderBanner');
+            if(tenantBanner){
+              if(/[<>]/.test(result.tenant)){
+                document.getElementById('tenantPlaceholderInput').value='';
+                document.getElementById('tenantPlaceholderInput').dataset.placeholder=result.tenant;
+                tenantBanner.style.display='flex';
+              } else {
+                tenantBanner.style.display='none';
+              }
+            }
+            note(`AEP Schema Export · Tenant: <b>${esc(tenant)}</b> · ${jsonRows.length} fields · ${fgCount} field groups`);
           } else {
             // Format 1: existing XDM instance data
             jsonRows=parseXDM(obj);
@@ -153,6 +164,23 @@ function setupFileInput(){
     };
     if(nm.endsWith('.json'))r.readAsText(f);else r.readAsBinaryString(f);
   });
+}
+
+function applyTenantReplacement(){
+  const input=document.getElementById('tenantPlaceholderInput');
+  const raw=(input.value||'').trim();
+  if(!raw){setStatus('Please enter a Tenant ID',true);return;}
+  const newTenant='_'+raw.replace(/^_/,'');
+  const placeholder=input.dataset.placeholder||'';
+  if(!placeholder){setStatus('No placeholder to replace',true);return;}
+  jsonRows=jsonRows.map(r=>{
+    const row={...r};
+    if(row["XDM Column Path"])row["XDM Column Path"]=row["XDM Column Path"].split(placeholder).join(newTenant);
+    if(row.__objectPath)row.__objectPath=row.__objectPath.split(placeholder).join(newTenant);
+    return row;
+  });
+  document.getElementById('tenantPlaceholderBanner').style.display='none';
+  note(`AEP Schema Export · Tenant: <b>${esc(newTenant)}</b> · ${jsonRows.length} fields`);
 }
 
 function loadData(){

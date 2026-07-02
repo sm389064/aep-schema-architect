@@ -517,6 +517,16 @@ body{display:flex;flex-direction:column}
           <button class="btn btn-primary" id="loadBtn" onclick="loadData()" style="display:none"><i class="ti ti-table-import"></i> Load</button>
         </div>
         <div class="up-note" id="upNote"></div>
+        <div id="tenantPlaceholderBanner" style="display:none;align-items:center;gap:8px;margin-top:8px;padding:10px 14px;background:#fff8e1;border:1px solid #f59f00;border-radius:6px;font-size:12px;flex-wrap:wrap">
+          <i class="ti ti-alert-triangle" style="color:#f59f00;font-size:16px;flex-shrink:0"></i>
+          <span style="flex:1;min-width:200px">This file uses a <b>tenant ID placeholder</b>. Enter your real Tenant ID to update all XDM paths:</span>
+          <input id="tenantPlaceholderInput" type="text" placeholder="e.g. wellsfargo"
+            style="padding:5px 9px;border:1px solid #d4a017;border-radius:4px;font-size:12px;width:160px;background:#fffdf0"
+            onkeydown="if(event.key==='Enter')applyTenantReplacement()">
+          <button class="btn btn-primary" style="padding:5px 14px;font-size:12px" onclick="applyTenantReplacement()">
+            <i class="ti ti-check"></i> Apply
+          </button>
+        </div>
       </div>
 
       <div class="ctrl-step">

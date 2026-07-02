@@ -140,13 +140,17 @@ function parseAEPExport(arr){
   });
 
   // Detect tenant from mixin properties key starting with '_'
+  // Scans all definition keys (not just 'customFields') to handle any naming convention
   let tenant='';
   for(const mx of mixins){
-    const props=mx.definitions&&mx.definitions.customFields&&mx.definitions.customFields.properties;
-    if(props){
+    if(!mx.definitions) continue;
+    for(const defKey of Object.keys(mx.definitions)){
+      const props=mx.definitions[defKey]&&mx.definitions[defKey].properties;
+      if(!props) continue;
       const tk=Object.keys(props).find(k=>k.startsWith('_'));
       if(tk){ tenant=tk; break; }
     }
+    if(tenant) break;
   }
 
   // Recursively resolve a datatype $ref to get its properties
@@ -257,7 +261,13 @@ function parseAEPExport(arr){
 
   mixinOrder.forEach(mx=>{
     const fgName=mx.title||'';
-    const props=mx.definitions&&mx.definitions.customFields&&mx.definitions.customFields.properties;
+    let props=null;
+    if(mx.definitions){
+      for(const defKey of Object.keys(mx.definitions)){
+        const p=mx.definitions[defKey]&&mx.definitions[defKey].properties;
+        if(p){ props=p; break; }
+      }
+    }
     if(!props) return;
 
     const tenantNode=tenant&&props[tenant];
@@ -292,6 +302,131 @@ function parseAEPExport(arr){
       fieldGroupCount++;
     });
   }
+
+  return { rows, tenant, fieldGroupCount };
+}
+
+/* ─── parseAPISchema ───────────────────────────────────────────────────────
+ * Parses a single AEP schema object returned by the Schema Registry API
+ * (Accept: application/vnd.adobe.xed-full+json; version=1).
+ * Returns { rows, tenant, fieldGroupCount } matching parseAEPExport's format.
+ */
+function parseAPISchema(schemaObj) {
+  const props = schemaObj.properties || {};
+
+  // Detect tenant key: starts with _, not a system key, is an object
+  const tenant = Object.keys(props).find(k =>
+    k.startsWith('_') && !['_id','_repo'].includes(k) &&
+    props[k] && typeof props[k] === 'object' && !Array.isArray(props[k])
+  ) || '';
+
+  const rows = [];
+  let fieldGroupCount = 0;
+
+  function resolveXdmType(def) {
+    const mt = def['meta:xdmType'];
+    if (mt && mt !== 'object' && mt !== 'array') return mt;
+    if (def.format === 'date-time' || def.format === 'date') return def.format;
+    return def.type || 'string';
+  }
+
+  function buildDesc(def) {
+    let d = def.description || '';
+    if (def.enum && def.enum.length) {
+      const enumLabels = def['meta:enum'] || {};
+      const enumStr = def.enum.map(v => enumLabels[v] ? `${v} (${enumLabels[v]})` : v).join(', ');
+      d += (d ? ' · ' : '') + 'Enum: ' + enumStr;
+    }
+    return d;
+  }
+
+  // Recursively walk schema properties and return flat row array
+  function walkProps(nodeProps, pathParts, fgName, fgClass) {
+    const fields = [];
+    if (!nodeProps) return fields;
+
+    Object.entries(nodeProps).forEach(([key, def]) => {
+      if (!def || typeof def !== 'object') return;
+
+      const xdmType = def['meta:xdmType'] || def.type || 'string';
+      const isObj = xdmType === 'object' || def.type === 'object';
+      const isArr = xdmType === 'array' || def.type === 'array';
+
+      // Object with nested properties — recurse
+      if (isObj && def.properties && Object.keys(def.properties).length > 0) {
+        fields.push(...walkProps(def.properties, [...pathParts, key], fgName, fgClass));
+        return;
+      }
+
+      // Array of objects — recurse into items
+      if (isArr && def.items) {
+        const itemProps = def.items.properties;
+        if (itemProps && Object.keys(itemProps).length > 0) {
+          fields.push(...walkProps(itemProps, [...pathParts, key], fgName, fgClass));
+          return;
+        }
+        // allOf inside items
+        if (def.items.allOf) {
+          const merged = {};
+          def.items.allOf.forEach(a => a.properties && Object.assign(merged, a.properties));
+          if (Object.keys(merged).length > 0) {
+            fields.push(...walkProps(merged, [...pathParts, key], fgName, fgClass));
+            return;
+          }
+        }
+      }
+
+      // Leaf field
+      const objPathParts = pathParts.filter(p => p !== tenant);
+      const leafXdmType  = resolveXdmType(def);
+      const title        = def.title || toDisplayName(key);
+      const desc         = buildDesc(def);
+
+      const row = blankRow(objPathParts.join('.'));
+      row["Source Data Column"]        = key;
+      row["Source Data Type"]          = leafXdmType;
+      row["AEP Field Name"]            = toCamel(key);
+      row["AEP Display Name"]          = title;
+      row["Description"]               = desc;
+      row["XDM Data Type"]             = leafXdmType;
+      row["Field Group Name"]          = fgName;
+      row["Field Group Classification"] = fgClass;
+
+      const xdmParts = [];
+      if (fgClass === 'Custom' && tenant) xdmParts.push(tenant);
+      objPathParts.forEach(p => xdmParts.push(p));
+      xdmParts.push(key);
+      row["XDM Column Path"] = xdmParts.join('.');
+
+      fields.push(row);
+    });
+
+    return fields;
+  }
+
+  // ── Custom (tenant) field groups ────────────────────────────────────────
+  if (tenant && props[tenant] && props[tenant].properties) {
+    Object.entries(props[tenant].properties).forEach(([fgKey, fgDef]) => {
+      const fgName   = fgDef.title || fgKey;
+      const fgProps  = fgDef.properties || null;
+      const fgFields = fgProps
+        ? walkProps(fgProps, [tenant, fgKey], fgName, 'Custom')
+        : walkProps({ [fgKey]: fgDef }, [tenant], fgName, 'Custom');
+      rows.push(...fgFields);
+      if (fgFields.length) fieldGroupCount++;
+    });
+  }
+
+  // ── OOTB (non-tenant) fields ────────────────────────────────────────────
+  const ootbSeen = new Set();
+  Object.entries(props).forEach(([key, def]) => {
+    if (!def || typeof def !== 'object') return;
+    if (key === tenant || key.startsWith('_')) return; // skip tenant + system keys
+    const fgName   = def.title || key;
+    const fgFields = walkProps({ [key]: def }, [], fgName, 'OOTB');
+    rows.push(...fgFields);
+    if (fgFields.length && !ootbSeen.has(fgName)) { ootbSeen.add(fgName); fieldGroupCount++; }
+  });
 
   return { rows, tenant, fieldGroupCount };
 }
