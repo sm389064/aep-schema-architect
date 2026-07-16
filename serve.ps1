@@ -98,11 +98,18 @@ try {
             if ($urlPath -eq "/") { $urlPath = "/index.html" }
             $filePath = Join-Path $root ($urlPath.TrimStart("/"))
 
-            if (Test-Path $filePath -PathType Leaf) {
-                $ext = [System.IO.Path]::GetExtension($filePath)
+            $fullRoot = [System.IO.Path]::GetFullPath($root)
+            if (-not $fullRoot.EndsWith([System.IO.Path]::DirectorySeparatorChar)) {
+                $fullRoot += [System.IO.Path]::DirectorySeparatorChar
+            }
+            $fullFilePath = [System.IO.Path]::GetFullPath($filePath)
+            $withinRoot = $fullFilePath.StartsWith($fullRoot, [System.StringComparison]::OrdinalIgnoreCase)
+
+            if ($withinRoot -and (Test-Path $fullFilePath -PathType Leaf)) {
+                $ext = [System.IO.Path]::GetExtension($fullFilePath)
                 $contentType = $mimeMap[$ext]
                 if (-not $contentType) { $contentType = "application/octet-stream" }
-                $fileBytes = [System.IO.File]::ReadAllBytes($filePath)
+                $fileBytes = [System.IO.File]::ReadAllBytes($fullFilePath)
                 Add-Cors $response
                 $response.ContentType = $contentType
                 $response.ContentLength64 = $fileBytes.Length
