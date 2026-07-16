@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Automating Data Mapping Document</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue: #1473e6; --blue-dark: #0d66d0; --blue-bg: #f0f4ff;
+  --green: #2d9d78; --green-bg: #eaf7f2; --green-border: #9eddc8;
+  --red: #fa0f00; --red-badge: #c50c00;
+  --amber-bg: #fffbea; --amber-border: #f0d060; --amber-text: #7a5500;
+  --surface: #f2f2f2; --card: #fff;
+  --border: #e2e2e2; --border-mid: #d0d0d0;
+  --text: #2c2c2c; --text-muted: #6e6e6e; --text-hint: #b0b0b0;
+  --r: 12px; --rs: 7px;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--surface); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ── TOPBAR ── */
+.topbar { background: #1f1f1f; color: #fff; height: 50px; display: flex; align-items: center; padding: 0 28px; gap: 12px; flex-shrink: 0; position: sticky; top: 0; z-index: 100; }
+.tb-logo { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 600; letter-spacing: .01em; }
+.tb-logo svg { width: 22px; height: 22px; }
+.tb-divider { width: 1px; height: 18px; background: rgba(255,255,255,.2); margin: 0 4px; }
+.tb-sub { font-size: 13px; color: rgba(255,255,255,.55); }
+.tb-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.tb-status { font-size: 11px; display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; background: rgba(255,255,255,.08); color: rgba(255,255,255,.5); }
+.tb-status.ok { background: rgba(45,157,120,.25); color: #7de8c2; }
+.tb-status.err { background: rgba(250,15,0,.2); color: #ff8080; }
+
+/* ── PAGE ── */
+.page { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 44px 24px 80px; gap: 0; }
+.page-hero { text-align: center; margin-bottom: 40px; }
+.page-hero h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+.page-hero p  { font-size: 14px; color: var(--text-muted); }
+
+/* ── SECTIONS ── */
+.section {
+  width: 100%; max-width: 700px;
+  opacity: 0; transform: translateY(16px);
+  pointer-events: none; height: 0; overflow: hidden;
+  transition: opacity .35s ease, transform .35s ease;
+}
+.section.visible {
+  opacity: 1; transform: translateY(0);
+  pointer-events: auto; height: auto; overflow: visible;
+  margin-bottom: 20px;
+}
+.section.visible ~ .section-connector { display: block; }
+
+/* connector line between sections */
+.section-connector {
+  display: none;
+  width: 2px; height: 24px;
+  background: linear-gradient(to bottom, var(--border-mid), var(--border));
+  margin: 0 auto;
+  flex-shrink: 0;
+}
+
+/* ── CARD ── */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; width: 100%; }
+.card.done { border-color: var(--green-border); }
+
+.card-head { padding: 16px 22px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+.card.done .card-head { border-bottom-color: var(--green-border); background: var(--green-bg); }
+.ch-num { width: 28px; height: 28px; border-radius: 50%; background: var(--blue-bg); color: var(--blue); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.card.done .ch-num { background: var(--green); color: #fff; }
+.ch-title { font-size: 14px; font-weight: 700; flex: 1; }
+.ch-meta { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.ch-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 4px; flex-shrink: 0; }
+.badge-blue  { background: var(--blue); color: #fff; }
+.badge-green { background: var(--green); color: #fff; }
+.badge-done  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+
+.card-body { padding: 22px; }
+.card-foot { padding: 14px 22px; border-top: 1px solid var(--border); background: #fafafa; display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
+
+/* ── FORM ELEMENTS ── */
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; display: flex; align-items: center; gap: 5px; }
+.req { color: var(--red); font-size: 14px; line-height: 1; }
+.fi { height: 38px; border: 1px solid var(--border); border-radius: var(--rs); padding: 0 12px; font-size: 13px; font-family: inherit; color: var(--text); background: #fff; outline: none; width: 100%; transition: border-color .18s, box-shadow .18s; }
+.fi:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(20,115,230,.1); }
+.fi.filled { border-color: var(--green-border); }
+.fi.empty  { border-color: #e8a060; background: #fff9f4; }
+.fi-wrap { position: relative; }
+.fi-wrap .fi { padding-right: 38px; }
+.fi-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 16px; padding: 0; }
+.fi-eye:hover { color: var(--blue); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.full { grid-column: 1 / -1; }
+
+/* ── BUTTONS ── */
+.btn { height: 38px; padding: 0 20px; border-radius: var(--rs); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; border: 1px solid var(--border); background: #fff; color: var(--text); display: inline-flex; align-items: center; gap: 8px; transition: background .15s, border-color .15s; white-space: nowrap; flex-shrink: 0; }
+.btn:hover:not(:disabled) { background: #f5f5f5; }
+.btn:disabled { opacity: .42; cursor: not-allowed; }
+.btn-blue  { background: var(--blue); color: #fff; border-color: var(--blue); }
+.btn-blue:hover:not(:disabled) { background: var(--blue-dark); border-color: var(--blue-dark); }
+.btn-green { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-green:hover:not(:disabled) { background: #228a66; }
+.btn-lg { height: 42px; font-size: 14px; padding: 0 26px; }
+.spin { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── ALERTS ── */
+.alert { display: none; padding: 11px 14px; border-radius: var(--rs); font-size: 12px; line-height: 1.5; align-items: flex-start; gap: 8px; margin-top: 14px; }
+.alert.show { display: flex; }
+.alert i { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+.a-info    { background: var(--blue-bg); border: 1px solid #c0d0f5; color: #1a3a8c; }
+.a-success { background: var(--green-bg); border: 1px solid var(--green-border); color: #1a5e40; }
+.a-error   { background: #fff0f0; border: 1px solid #f0c0c0; color: #8b1a1a; }
+.a-warning { background: var(--amber-bg); border: 1px solid var(--amber-border); color: var(--amber-text); }
+
+/* ── DROP ZONE ── */
+.dz { border: 2px dashed var(--border-mid); border-radius: var(--r); padding: 28px 22px; text-align: center; cursor: pointer; background: #fafafa; transition: border-color .2s, background .2s; }
+.dz:hover, .dz.over { border-color: var(--blue); background: var(--blue-bg); }
+.dz.ok { border-color: var(--green); background: var(--green-bg); }
+.dz-icon { font-size: 32px; color: var(--text-hint); margin-bottom: 8px; }
+.dz.ok .dz-icon { color: var(--green); }
+.dz-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+.dz-hint  { font-size: 12px; color: var(--text-muted); }
+
+/* ── CRED FIELDS ── */
+.cred-fields { display: none; margin-top: 20px; }
+.cred-fields.show { display: block; }
+.section-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── SANDBOX SECTION ── */
+.sandbox-section { display: none; }
+.sandbox-section.show { display: block; }
+
+/* ── SCHEMA SECTION ── */
+.schema-section { display: none; }
+.schema-section.show { display: block; }
+
+/* ── SCHEMA FILTER PILLS ── */
+.filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+.filter-label { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-right: 4px; }
+.pill-btn {
+  height: 30px; padding: 0 14px; border-radius: 20px; border: 1px solid var(--border-mid);
+  background: #fff; font-size: 12px; font-weight: 600; color: var(--text-muted);
+  cursor: pointer; font-family: inherit; transition: all .15s; display: inline-flex; align-items: center; gap: 5px;
+}
+.pill-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
+.pill-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+/* ── SCHEMA LIST ── */
+.schema-search-wrap { position: relative; margin-bottom: 10px; }
+.schema-search-wrap i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 15px; color: var(--text-muted); pointer-events: none; }
+.schema-search { height: 36px; border: 1px solid var(--border); border-radius: var(--rs); padding: 0 12px 0 34px; font-size: 13px; font-family: inherit; outline: none; width: 100%; }
+.schema-search:focus { border-color: var(--blue); }
+
+.schema-list { border: 1px solid var(--border); border-radius: var(--rs); max-height: 320px; overflow-y: auto; }
+.sitem { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background .12s; }
+.sitem:last-child { border-bottom: none; }
+.sitem:hover { background: #f5f7ff; }
+.sitem.sel { background: #ebf0ff; }
+.si-icon { width: 30px; height: 30px; border-radius: 6px; background: #eef2ff; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--blue); flex-shrink: 0; }
+.si-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 360px; }
+.si-meta { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.si-check { margin-left: auto; color: var(--blue); font-size: 17px; display: none; flex-shrink: 0; }
+.sitem.sel .si-check { display: block; }
+.spill { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px; text-transform: uppercase; letter-spacing: .03em; flex-shrink: 0; }
+.p-profile { background: #e8f0ff; color: #1a3a9e; }
+.p-event   { background: #fff3e0; color: #7a3f00; }
+.p-lookup  { background: #f0fae8; color: #2d5e10; }
+.p-other   { background: #f5f5f5; color: #5a5a5a; }
+.p-std     { background: #f3e8ff; color: #5a1a9e; }
+
+.schema-empty { padding: 36px 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
+.schema-empty i { font-size: 28px; margin-bottom: 8px; display: block; color: var(--text-hint); }
+.schema-footer { padding: 8px 14px; border-top: 1px solid var(--border); background: #fafafa; font-size: 11px; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; }
+
+/* ── COLLAPSE ── */
+.ct { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); cursor: pointer; user-select: none; margin-top: 14px; }
+.ct:hover { color: var(--blue); }
+.ct i.chev { transition: transform .2s; font-size: 13px; }
+.ct.open i.chev { transform: rotate(90deg); }
+.cc { display: none; margin-top: 8px; }
+.cc.open { display: block; }
+.code { background: #1a1a2e; border-radius: var(--rs); padding: 12px 14px; font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.7; color: #a8d8ff; overflow-x: auto; }
+.code .k { color: #f5c0e8; } .code .v { color: #a8e8b8; } .code .c { color: #555; }
+
+.schema-list::-webkit-scrollbar { width: 5px; }
+.schema-list::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 3px; }
+
+/* ── STATUS ICONS ── */
+.ok-dot   { color: var(--green); font-size: 13px; }
+.miss-dot { color: #e08030; font-size: 13px; }
+
+/* ── PROXY BOX ── */
+.proxy-box { background: var(--amber-bg); border: 1px solid var(--amber-border); border-radius: var(--rs); padding: 12px 14px; margin-top: 14px; font-size: 12px; color: var(--amber-text); display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
+.proxy-box code { background: rgba(0,0,0,.07); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-logo">
+    <svg viewBox="0 0 24 24" fill="#fa0f00"><path d="M14.235 2L22 22h-5.538l-2.03-5.385H9.568L14.235 2zm-4.47 10.892l2.003 5.723H7.762l2.003-5.723zM2 22l3.846-9.846L9.385 22H2z"/></svg>
+    AEP Schema Architect
+  </div>
+  <div class="tb-divider"></div>
+  <span class="tb-sub">Data Mapping Setup</span>
+  <div class="tb-right">
+    <div class="tb-status" id="proxyStatus">
+      <i class="ti ti-circle-dashed" aria-hidden="true"></i> Checking proxy…
+    </div>
+  </div>
+</div>
+
+<!-- PAGE -->
+<div class="page">
+  <div class="page-hero">
+    <h1>Automating Data Mapping Document</h1>
+    <p>Connect your AEP credentials, pick a sandbox &amp; schema, then start mapping</p>
+  </div>
+
+  <!-- ── SECTION 1: CREDENTIALS ── -->
+  <div class="section visible" id="sec-creds">
+    <div class="card" id="card-creds">
+      <div class="card-head">
+        <div class="ch-num">1</div>
+        <div>
+          <div class="ch-title">AEP Credentials</div>
+          <div class="ch-meta">Upload your Postman environment file or fill in manually</div>
+        </div>
+        <span class="ch-badge badge-blue">Required</span>
+      </div>
+
+      <div class="card-body">
+        <!-- Drop zone -->
+        <div class="dz" id="dz"
+          onclick="document.getElementById('fi').click()"
+          ondragover="dzOver(event)" ondragleave="dzOut()" ondrop="dzDrop(event)">
+          <div class="dz-icon"><i class="ti ti-file-type-json" id="dzIcon" aria-hidden="true"></i></div>
+          <div class="dz-title" id="dzTitle">Drag &amp; drop your Postman environment file here</div>
+          <div class="dz-hint">or click to browse (.json · .postman_environment)</div>
+        </div>
+        <input type="file" id="fi" accept=".json,.postman_environment" style="display:none" onchange="onFSel(this)">
+
+        <!-- Format reference -->
+        <div class="ct" id="fmtT" onclick="tog('fmtT','fmtC')">
+          <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
+          Expected Postman environment format
+        </div>
+        <div class="cc" id="fmtC">
+          <div class="code"><span class="c">// .json or .postman_environment</span>
+{ <span class="k">"values"</span>: [
+    { <span class="k">"key"</span>: <span class="v">"CLIENT_ID"</span>,     <span class="k">"value"</span>: <span class="v">"abc123"</span> },
+    { <span class="k">"key"</span>: <span class="v">"CLIENT_SECRET"</span>, <span class="k">"value"</span>: <span class="v">"xyz789"</span> },
+    { <span class="k">"key"</span>: <span class="v">"IMS_ORG"</span>,        <span class="k">"value"</span>: <span class="v">"ABC@AdobeOrg"</span> }
+] }</div>
+        </div>
+
+        <!-- Editable credential fields -->
+        <div class="cred-fields" id="credFields">
+          <div class="section-label" style="margin-top:20px">Credentials — edit if needed</div>
+          <div class="grid-2">
+
+            <div class="field">
+              <label><span class="req">*</span> Client ID
+                <i class="ti ti-circle-check ok-dot" id="ic-CLIENT_ID" style="display:none" aria-hidden="true"></i>
+                <i class="ti ti-alert-triangle miss-dot" id="im-CLIENT_ID" style="display:none" aria-hidden="true"></i>
+              </label>
+              <input class="fi" id="f-CLIENT_ID" type="text" placeholder="9432100644eb4a53…" oninput="fEdit('CLIENT_ID')">
+            </div>
+
+            <div class="field">
+              <label><span class="req">*</span> Client Secret
+                <i class="ti ti-circle-check ok-dot" id="ic-CLIENT_SECRET" style="display:none" aria-hidden="true"></i>
+                <i class="ti ti-alert-triangle miss-dot" id="im-CLIENT_SECRET" style="display:none" aria-hidden="true"></i>
+              </label>
+              <div class="fi-wrap">
+                <input class="fi" id="f-CLIENT_SECRET" type="password" placeholder="Your client secret" oninput="fEdit('CLIENT_SECRET')">
+                <button class="fi-eye" onclick="togglePwd('f-CLIENT_SECRET',this)" type="button">
+                  <i class="ti ti-eye" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="field full">
+              <label><span class="req">*</span> IMS Org ID
+                <i class="ti ti-circle-check ok-dot" id="ic-IMS_ORG" style="display:none" aria-hidden="true"></i>
+                <i class="ti ti-alert-triangle miss-dot" id="im-IMS_ORG" style="display:none" aria-hidden="true"></i>
+              </label>
+              <input class="fi" id="f-IMS_ORG" type="text" placeholder="A01E18EE5D44…@AdobeOrg" oninput="fEdit('IMS_ORG')">
+            </div>
+
+            <div class="field">
+              <label>Technical Account ID <span style="font-weight:400;font-style:italic;text-transform:none">(optional)</span></label>
+              <input class="fi" id="f-TECHNICAL_ACCOUNT_ID" type="text" placeholder="D70F…@techacct.adobe.com" oninput="fEdit('TECHNICAL_ACCOUNT_ID')">
+            </div>
+
+            <div class="field">
+              <label>API Key</label>
+              <input class="fi" id="f-API_KEY" type="text" placeholder="Auto-filled from Client ID" oninput="fEdit('API_KEY')">
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Parsed keys collapse -->
+        <div class="ct" id="rawT" onclick="tog('rawT','rawC')" style="display:none">
+          <i class="ti ti-chevron-right chev" aria-hidden="true"></i>
+          All keys detected in file
+        </div>
+        <div class="cc" id="rawC">
+          <div class="code" id="rawDump" style="max-height:180px;overflow-y:auto;margin-top:6px"></div>
+        </div>
+
+        <div class="alert" id="credAlert"><i class="ti ti-info-circle" aria-hidden="true"></i><div id="credAlertText"></div></div>
+      </div>
+
+      <div class="card-foot">
+        <button class="btn" id="clearBtn" onclick="clearAll()" style="display:none">
+          <i class="ti ti-x" aria-hidden="true"></i> Clear
+        </button>
+        <button class="btn" onclick="showManual()">
+          <i class="ti ti-pencil" aria-hidden="true"></i> Enter Manually
+        </button>
+        <button class="btn btn-blue btn-lg" id="connectBtn" onclick="doConnect()" disabled>
+          <i class="ti ti-plug-connected" aria-hidden="true"></i> Connect to AEP
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-connector" id="conn-1"></div>
+
+  <!-- ── SECTION 2: SANDBOX ── -->
+  <div class="section" id="sec-sandbox">
+    <div class="card" id="card-sandbox">
+      <div class="card-head">
+        <div class="ch-num">2</div>
+        <div>
+          <div class="ch-title">Select Sandbox</div>
+          <div class="ch-meta" id="sandboxMeta">Choose which AEP sandbox to connect to</div>
+        </div>
+        <span class="ch-badge badge-blue">Step 2</span>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label>Sandbox</label>
+          <!-- Populated dynamically: either a <select> or <input> depending on API access -->
+          <div id="sandboxFieldWrap"></div>
+        </div>
+        <div class="alert" id="sandboxAlert"><i class="ti ti-info-circle" aria-hidden="true"></i><div id="sandboxAlertText"></div></div>
+      </div>
+      <div class="card-foot">
+        <button class="btn btn-blue btn-lg" id="loadSchemasBtn" onclick="doLoadSchemas()" disabled>
+          <i class="ti ti-database" aria-hidden="true"></i> Load Schemas
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-connector" id="conn-2"></div>
+
+  <!-- ── SECTION 3: SCHEMA ── -->
+  <div class="section" id="sec-schema">
+    <div class="card" id="card-schema">
+      <div class="card-head">
+        <div class="ch-num">3</div>
+        <div>
+          <div class="ch-title">Select Schema</div>
+          <div class="ch-meta" id="schemaMeta">Filter and pick the schema to map</div>
+        </div>
+        <span class="ch-badge badge-blue" id="schemaStepBadge">Step 3</span>
+      </div>
+      <div class="card-body">
+
+        <!-- Filter pills -->
+        <div class="filter-row">
+          <span class="filter-label">Type:</span>
+          <button class="pill-btn active" data-filter="custom" onclick="setFilter('custom')">
+            <i class="ti ti-building" aria-hidden="true"></i> Custom (Tenant)
+          </button>
+          <button class="pill-btn" data-filter="standard" onclick="setFilter('standard')">
+            <i class="ti ti-certificate" aria-hidden="true"></i> Standard (Adobe OOTB)
+          </button>
+          <button class="pill-btn" data-filter="all" onclick="setFilter('all')">
+            <i class="ti ti-list" aria-hidden="true"></i> All
+          </button>
+        </div>
+
+        <!-- Search -->
+        <div class="schema-search-wrap">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input type="text" class="schema-search" id="schemaSearch" placeholder="Search schemas by name…" oninput="filterSchemas()">
+        </div>
+
+        <!-- List -->
+        <div class="schema-list" id="schemaList">
+          <div class="schema-empty"><i class="ti ti-database-off" aria-hidden="true"></i>Schemas will appear here after loading</div>
+        </div>
+        <div class="schema-footer" id="schemaFooter" style="display:none">
+          <span id="schemaCount"></span>
+          <span id="schemaSelected" style="color:var(--blue);font-weight:600"></span>
+        </div>
+
+        <div class="alert" id="schemaAlert"><i class="ti ti-info-circle" aria-hidden="true"></i><div id="schemaAlertText"></div></div>
+      </div>
+
+      <div class="card-foot">
+        <button class="btn" onclick="resetFromSandbox()">
+          <i class="ti ti-arrow-left" aria-hidden="true"></i> Change Sandbox
+        </button>
+        <button class="btn btn-green btn-lg" id="openToolBtn" onclick="doOpenTool()" disabled>
+          <i class="ti ti-arrow-right" aria-hidden="true"></i> Open in Schema Architect
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+/* ── STATE ── */
+let raw = {}, token = null, allSchemas = [], selectedSchema = null, currentFilter = 'custom';
+const REQ = ['CLIENT_ID','CLIENT_SECRET','IMS_ORG'];
+
+/* ── PROXY CHECK ── */
+window.addEventListener('load', async () => {
+  const el = document.getElementById('proxyStatus');
+  try {
+    const r = await fetch('/api/ping');
+    const d = await r.json();
+    if (d.server === 'aep-proxy') {
+      el.className = 'tb-status ok';
+      el.innerHTML = '<i class="ti ti-circle-check"></i> Proxy ready';
+    } else {
+      el.className = 'tb-status err';
+      el.innerHTML = '<i class="ti ti-alert-circle"></i> Wrong server — run python server.py';
+    }
+  } catch {
+    el.className = 'tb-status err';
+    el.innerHTML = '<i class="ti ti-alert-circle"></i> Run python server.py';
+  }
+});
+
+/* ── HELPERS ── */
+const g = id => document.getElementById(id);
+const fv = k => (g('f-'+k)||{value:''}).value.trim();
+function fset(k, v) {
+  const el = g('f-'+k); if (!el) return;
+  el.value = Array.isArray(v) ? v.join(', ') : (v == null ? '' : String(v));
+  fStatus(k);
+}
+function fStatus(k) {
+  const v = fv(k), el = g('f-'+k); if (!el) return;
+  el.classList.toggle('filled', !!v);
+  el.classList.toggle('empty',  !v && REQ.includes(k));
+  const ok = g('ic-'+k), miss = g('im-'+k);
+  if (ok)   ok.style.display   = v ? 'inline' : 'none';
+  if (miss) miss.style.display = (!v && REQ.includes(k)) ? 'inline' : 'none';
+}
+function fEdit(k) { fStatus(k); checkReady(); }
+function checkReady() { g('connectBtn').disabled = !REQ.every(k => !!fv(k)); }
+function tog(tid, cid) { g(tid).classList.toggle('open'); g(cid).classList.toggle('open'); }
+function togglePwd(id, btn) {
+  const el = g(id), show = el.type==='text';
+  el.type = show ? 'password' : 'text';
+  btn.querySelector('i').className = show ? 'ti ti-eye' : 'ti ti-eye-off';
+}
+function alert_(id, type, msg) {
+  const el = g(id);
+  el.className = 'alert show a-'+type;
+  el.querySelector('i').className = {info:'ti ti-info-circle',success:'ti ti-circle-check',error:'ti ti-alert-circle',warning:'ti ti-alert-triangle'}[type]+' ti';
+  g(id+'Text').innerHTML = msg;
+}
+function alertHide(id) { g(id).classList.remove('show'); }
+function showSection(id) {
+  const el = g(id);
+  el.classList.add('visible');
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // show connector before this section
+  const connMap = {'sec-sandbox':'conn-1','sec-schema':'conn-2'};
+  if (connMap[id]) g(connMap[id]).style.display = 'block';
+}
+function hideSection(id) {
+  g(id).classList.remove('visible');
+  const connMap = {'sec-sandbox':'conn-1','sec-schema':'conn-2'};
+  if (connMap[id]) g(connMap[id]).style.display = 'none';
+}
+function markDone(cardId) { g(cardId).classList.add('done'); }
+function markActive(cardId) { g(cardId).classList.remove('done'); }
+
+/* ── FILE HANDLING ── */
+function dzOver(e) { e.preventDefault(); g('dz').classList.add('over'); }
+function dzOut()   { g('dz').classList.remove('over'); }
+function dzDrop(e) { e.preventDefault(); dzOut(); if (e.dataTransfer.files[0]) doFile(e.dataTransfer.files[0]); }
+function onFSel(input) { if (input.files[0]) doFile(input.files[0]); }
+
+function doFile(file) {
+  const ok = ['.json','.postman_environment'].some(ext => file.name.toLowerCase().endsWith(ext));
+  if (!ok) { alert_('credAlert','error','Please upload a .json or .postman_environment file.'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    try { parseEnv(JSON.parse(e.target.result), file.name); }
+    catch { alert_('credAlert','error','Could not parse file. Check it is a valid Postman environment export.'); }
+  };
+  reader.readAsText(file);
+}
+
+function parseEnv(data, filename) {
+  raw = {};
+  (data.values || data.environment?.values || []).forEach(v => {
+    if (!v.key) return;
+    raw[v.key] = Array.isArray(v.value) ? v.value.join(', ') : (v.value ?? '');
+  });
+  if (!Object.keys(raw).length)
+    Object.entries(data).forEach(([k,v]) => { if (typeof v==='string') raw[k]=v; });
+
+  // key aliases
+  if (!raw.CLIENT_ID && raw.API_KEY)  raw.CLIENT_ID = raw.API_KEY;
+  if (!raw.API_KEY && raw.CLIENT_ID)  raw.API_KEY   = raw.CLIENT_ID;
+  if (!raw.IMS_ORG  && raw.ORG_ID)   raw.IMS_ORG   = raw.ORG_ID;
+
+  ['CLIENT_ID','CLIENT_SECRET','IMS_ORG','TECHNICAL_ACCOUNT_ID','API_KEY'].forEach(k => fset(k, raw[k]||''));
+
+  // raw dump
+  g('rawDump').innerHTML = Object.entries(raw).map(([k,v]) => {
+    const m = k==='CLIENT_SECRET' ? '••••'+v.slice(-4) : v.length>50 ? v.slice(0,30)+'…' : v;
+    return `<span class="k">"${k}"</span>: <span class="v">"${m}"</span>`;
+  }).join('\n') || '<span class="c">No keys found</span>';
+  g('rawT').style.display = 'flex';
+
+  // Update drop zone
+  g('dz').classList.add('ok');
+  g('dzIcon').className = 'ti ti-circle-check';
+  g('dzTitle').textContent = filename;
+  g('credFields').classList.add('show');
+  g('clearBtn').style.display = 'inline-flex';
+
+  const missing = REQ.filter(k => !raw[k]);
+  if (missing.length)
+    alert_('credAlert','warning', `File parsed. Fill in missing fields: <strong>${missing.join(', ')}</strong>`);
+  else
+    alert_('credAlert','success', 'Credentials loaded. Click <strong>Connect to AEP</strong>.');
+  checkReady();
+}
+
+function showManual() {
+  g('credFields').classList.add('show');
+  g('clearBtn').style.display = 'inline-flex';
+  alert_('credAlert','info','Fill in your credentials, then click <strong>Connect to AEP</strong>.');
+}
+function clearAll() {
+  raw = {};
+  ['CLIENT_ID','CLIENT_SECRET','IMS_ORG','TECHNICAL_ACCOUNT_ID','API_KEY'].forEach(k => fset(k,''));
+  g('credFields').classList.remove('show');
+  g('dz').classList.remove('ok');
+  g('dzIcon').className = 'ti ti-file-type-json';
+  g('dzTitle').textContent = 'Drag & drop your Postman environment file here';
+  g('fi').value = '';
+  g('clearBtn').style.display = 'none';
+  g('rawT').style.display = 'none';
+  alertHide('credAlert');
+  checkReady();
+  markActive('card-creds');
+  hideSection('sec-sandbox');
+  hideSection('sec-schema');
+}
+
+/* ── CONNECT ── */
+async function doConnect() {
+  const btn = g('connectBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Connecting…';
+  alertHide('credAlert');
+
+  const clientId = fv('CLIENT_ID'), secret = fv('CLIENT_SECRET'), imsOrg = fv('IMS_ORG');
+
+  try {
+    // Get token via proxy
+    alert_('credAlert','info','Authenticating with Adobe IMS…');
+    const tokenRes = await fetch('/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'client_credentials', client_id: clientId, client_secret: secret,
+        scope: 'openid,AdobeID,read_organizations,additional_info.projectedProductContext,session'
+      })
+    });
+    let tokenData;
+    try { tokenData = await tokenRes.json(); }
+    catch { throw new Error('Proxy returned non-JSON. Make sure python server.py is running (not python -m http.server).'); }
+    if (!tokenData.access_token)
+      throw new Error(`IMS auth failed (${tokenRes.status}): ${tokenData.error_description || tokenData.error || 'No token returned'}`);
+    token = tokenData.access_token;
+
+    // Try fetching sandboxes from API
+    alert_('credAlert','info','Fetching available sandboxes…');
+    let sandboxes = null;
+    try {
+      const sbRes = await fetch('https://platform.adobe.io/data/foundation/sandbox-management/sandboxes', {
+        headers: { 'Authorization':`Bearer ${token}`, 'x-api-key':clientId, 'x-gw-ims-org-id':imsOrg }
+      });
+      if (sbRes.ok) {
+        const sbData = await sbRes.json();
+        sandboxes = (sbData.sandboxes || sbData.items || []).filter(s => s.state === 'active');
+      }
+    } catch { /* no sandbox API access — fall back to text input */ }
+
+    // Build sandbox UI
+    buildSandboxUI(sandboxes, raw.SANDBOX_NAME || '');
+
+    // Mark credentials done
+    markDone('card-creds');
+    alertHide('credAlert');
+    btn.innerHTML = '<i class="ti ti-check"></i> Connected';
+
+    // Reveal sandbox section
+    showSection('sec-sandbox');
+
+  } catch(err) {
+    alert_('credAlert','error', err.message || 'Connection failed.');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-plug-connected"></i> Connect to AEP';
+  }
+}
+
+/* ── SANDBOX UI ── */
+function buildSandboxUI(sandboxes, defaultVal) {
+  const wrap = g('sandboxFieldWrap');
+  const loadBtn = g('loadSchemasBtn');
+
+  if (sandboxes && sandboxes.length) {
+    // Got sandbox list — build dropdown
+    const sel = document.createElement('select');
+    sel.className = 'fi';
+    sel.id = 'sandboxSelect';
+    sel.innerHTML = '<option value="">— select a sandbox —</option>';
+    sandboxes.forEach(sb => {
+      const opt = document.createElement('option');
+      opt.value = sb.name;
+      const typeLabel = sb.type === 'production' ? 'Production' : 'Development';
+      opt.textContent = `${sb.title || sb.name}  [${typeLabel}]`;
+      sel.appendChild(opt);
+    });
+    if (defaultVal) {
+      const match = sandboxes.find(s => s.name === defaultVal);
+      if (match) sel.value = defaultVal;
+    }
+    sel.onchange = () => { loadBtn.disabled = !sel.value; };
+    wrap.innerHTML = '';
+    wrap.appendChild(sel);
+    loadBtn.disabled = !sel.value;
+    g('sandboxMeta').textContent = `${sandboxes.length} active sandbox${sandboxes.length!==1?'es':''} found`;
+  } else {
+    // No API access — show text input
+    wrap.innerHTML = `<input class="fi" id="sandboxInput" type="text"
+      placeholder="e.g. prod, governance-poc, va7-dev-01"
+      value="${defaultVal}"
+      oninput="g('loadSchemasBtn').disabled = !this.value.trim()">
+      <div style="font-size:11px;color:var(--text-muted);margin-top:5px">
+        <i class="ti ti-info-circle" style="font-size:12px;vertical-align:-1px"></i>
+        Sandbox list not available for this account — enter the sandbox name manually
+      </div>`;
+    loadBtn.disabled = !defaultVal;
+  }
+}
+
+function getSandboxName() {
+  const sel = g('sandboxSelect'), inp = g('sandboxInput');
+  return sel ? sel.value : (inp ? inp.value.trim() : '');
+}
+
+/* ── LOAD SCHEMAS ── */
+async function doLoadSchemas() {
+  const sandbox = getSandboxName();
+  if (!sandbox) return;
+  const btn = g('loadSchemasBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Loading…';
+  alertHide('sandboxAlert');
+
+  try {
+    // Load based on current filter
+    await loadSchemasByFilter(currentFilter, sandbox);
+    markDone('card-sandbox');
+    showSection('sec-schema');
+    g('schemaMeta').textContent = `Sandbox: ${sandbox} · ${allSchemas.length} schema${allSchemas.length!==1?'s':''} loaded`;
+    g('schemaStepBadge').className = 'ch-badge badge-green';
+  } catch(err) {
+    alert_('sandboxAlert','error', err.message || 'Failed to load schemas.');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-database"></i> Load Schemas';
+}
+
+async function loadSchemasByFilter(filter, sandbox) {
+  const clientId = fv('CLIENT_ID'), imsOrg = fv('IMS_ORG');
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'x-api-key': clientId,
+    'x-gw-ims-org-id': imsOrg,
+    'x-sandbox-name': sandbox,
+    'Accept': 'application/vnd.adobe.xed-id+json'
+  };
+
+  let schemas = [];
+
+  if (filter === 'custom' || filter === 'all') {
+    const tenant = await fetchAllPages('https://platform.adobe.io/data/foundation/schemaregistry/tenant/schemas', headers);
+    tenant.forEach(s => { s._source = 'custom'; });
+    schemas = schemas.concat(tenant);
+  }
+  if (filter === 'standard' || filter === 'all') {
+    const global = await fetchAllPages('https://platform.adobe.io/data/foundation/schemaregistry/global/schemas', headers);
+    global.forEach(s => { s._source = 'standard'; });
+    schemas = schemas.concat(global);
+  }
+
+  allSchemas = schemas;
+  selectedSchema = null;
+  g('openToolBtn').disabled = true;
+  renderSchemas(allSchemas);
+}
+
+async function fetchAllPages(baseUrl, headers) {
+  let results = [], start = 0, limit = 100;
+  while (true) {
+    const res = await fetch(`${baseUrl}?orderby=title&start=${start}&limit=${limit}`, { headers });
+    if (!res.ok) {
+      const b = await res.json().catch(()=>({}));
+      throw new Error(`Schema Registry (${res.status}): ${b.title || b.type || res.statusText}`);
+    }
+    const data = await res.json();
+    const page = data.results || (Array.isArray(data) ? data : []);
+    results = results.concat(page);
+    if (page.length < limit) break;
+    start += limit;
+  }
+  return results;
+}
+
+/* ── FILTER ── */
+function setFilter(filter) {
+  currentFilter = filter;
+  document.querySelectorAll('.pill-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+  const sandbox = getSandboxName();
+  if (!sandbox || allSchemas.length === 0) return;
+  // Reload with new filter
+  const btn = g('loadSchemasBtn');
+  btn.click();
+}
+
+/* ── SCHEMA RENDER ── */
+function schemaType(s) {
+  const c = (s['meta:class']||s.class||'').toLowerCase();
+  if (c.includes('profile'))         return 'Profile';
+  if (c.includes('experienceevent')) return 'Event';
+  if (c.includes('lookup')||c.includes('record')) return 'Lookup';
+  return 'Other';
+}
+function pillCls(s) {
+  if (s._source === 'standard') return 'p-std';
+  const t = schemaType(s);
+  return {Profile:'p-profile',Event:'p-event',Lookup:'p-lookup',Other:'p-other'}[t]||'p-other';
+}
+function pillLabel(s) {
+  if (s._source === 'standard') return 'Standard';
+  return schemaType(s);
+}
+
+function renderSchemas(list) {
+  const c = g('schemaList');
+  const footer = g('schemaFooter');
+  if (!list.length) {
+    c.innerHTML = '<div class="schema-empty"><i class="ti ti-database-off"></i>No schemas found for this filter.</div>';
+    footer.style.display = 'none';
+    return;
+  }
+  c.innerHTML = list.map((s,i) => {
+    const name = s.title || s['meta:title'] || s.$id || 'Unnamed';
+    const id   = (s.$id||'').split('/').pop();
+    return `<div class="sitem" id="si-${i}" onclick="selectSchema(${i})">
+      <div class="si-icon"><i class="ti ti-table-alias" aria-hidden="true"></i></div>
+      <div style="flex:1;min-width:0">
+        <div class="si-name" title="${name}">${name}</div>
+        <div class="si-meta">${id||'schema'}</div>
+      </div>
+      <span class="spill ${pillCls(s)}">${pillLabel(s)}</span>
+      <i class="ti ti-check si-check" aria-hidden="true"></i>
+    </div>`;
+  }).join('');
+  g('schemaCount').textContent = `${list.length} schema${list.length!==1?'s':''}`;
+  g('schemaSelected').textContent = '';
+  footer.style.display = 'flex';
+}
+
+function filterSchemas() {
+  const q = g('schemaSearch').value.toLowerCase();
+  const list = q ? allSchemas.filter(s => (s.title||s.$id||'').toLowerCase().includes(q)) : allSchemas;
+  renderSchemas(list);
+  if (selectedSchema) {
+    const i = list.indexOf(selectedSchema);
+    if (i >= 0) g(`si-${i}`)?.classList.add('sel');
+  }
+  g('schemaCount').textContent = q ? `${list.length} of ${allSchemas.length}` : `${allSchemas.length} schema${allSchemas.length!==1?'s':''}`;
+}
+
+function selectSchema(i) {
+  document.querySelectorAll('.sitem.sel').forEach(el => el.classList.remove('sel'));
+  const q = g('schemaSearch').value.toLowerCase();
+  const list = q ? allSchemas.filter(s=>(s.title||s.$id||'').toLowerCase().includes(q)) : allSchemas;
+  selectedSchema = list[i] || null;
+  if (selectedSchema) {
+    g(`si-${i}`).classList.add('sel');
+    g('schemaSelected').textContent = `Selected: ${selectedSchema.title || selectedSchema.$id}`;
+  }
+  g('openToolBtn').disabled = !selectedSchema;
+}
+
+/* ── OPEN TOOL ── */
+function doOpenTool() {
+  if (!selectedSchema) return;
+  const schemaId = selectedSchema.$id || selectedSchema['meta:altId'] || '';
+  const params = new URLSearchParams({
+    aep_schema_id : schemaId,
+    aep_token     : token || '',
+    aep_client    : fv('CLIENT_ID'),
+    aep_org       : fv('IMS_ORG'),
+    aep_sandbox   : getSandboxName(),
+    aep_title     : selectedSchema.title || '',
+    aep_source    : selectedSchema._source || 'custom'
+  });
+  window.open('https://sm389064.github.io/aep-schema-architect/?' + params, '_blank');
+}
+
+/* ── RESET ── */
+function resetFromSandbox() {
+  allSchemas = []; selectedSchema = null;
+  g('schemaList').innerHTML = '<div class="schema-empty"><i class="ti ti-database-off"></i>Schemas will appear here after loading</div>';
+  g('schemaFooter').style.display = 'none';
+  g('openToolBtn').disabled = true;
+  markActive('card-sandbox');
+  g('schemaStepBadge').className = 'ch-badge badge-blue';
+  hideSection('sec-schema');
+  g('loadSchemasBtn').disabled = false;
+}
+</script>
+</body>
+</html>

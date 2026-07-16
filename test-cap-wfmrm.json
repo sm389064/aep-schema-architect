@@ -1,0 +1,1378 @@
+[{
+        "$id": "https://ns.adobe.com/<XDM_TENANTID_PLACEHOLDER>/mixins/2fa44c3861a2eb5dabc991e7199b7814c3058ae2f4c67a4",
+        "meta:altId": "_<XDM_TENANTID_PLACEHOLDER>.mixins.2fa44c3861a2eb5dabc991e7199b7814c3058ae2f4c67a4",
+        "meta:resourceType": "mixins",
+        "version": "1.4",
+        "title": "CAP WFMRM Foundational Attributes",
+        "type": "object",
+        "description": "CAP WFMRM Foundational Attributes",
+        "definitions": {
+            "capWfmrmFoundationalAttributes": {
+                "properties": {
+                    "_<XDM_TENANTID_PLACEHOLDER>": {
+                        "type": "object",
+                        "properties": {
+                            "capWfmrmFoundationalAttributes": {
+                                "type": "object",
+                                "properties": {
+                                    "bus_estblshd_dt": {
+                                        "title": "BusinessEstablishedDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Date that given business was established.",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cust_next_appt_dt": {
+                                        "title": "CustNextApptDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Date of the customer's next planned face-to-face appointment with a banker inside a branch location within the next 365 days.",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cust_term_dt": {
+                                        "title": "CustTermDt",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Termination date of the customer, based of the customer and account level close dates - for use in record retention / deletion ",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "lst_intractn_dt": {
+                                        "title": "LastInteractionWithBanker",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Customer's last interaction date. Last interaction is defined as the most recent face-to-face interaction between a customer and banker inside a branch location.",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "lst_ph_intractn_dt": {
+                                        "title": "LastPhoneInteractionDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Customer's last phone interaction date. Last phone interaction is defined as the most recent interaction that a customer has with a banker over the phone. Data for phone interactions is dependent on the banker manually-selecting this as the contact method following an interaction with customer.",
+                                        "meta:xdmType": "date"
+                                    },
+                                    "mde_mycog_opt_in_dt": {
+                                        "title": "MyCOGOptInDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Date that customer opted into MyCOG.",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "sav_max_open_dt": {
+                                        "title": "SavingsOldestDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Largest account tenure. Active consumer accounts only",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "sav_min_open_dt": {
+                                        "title": "SavingsNewestDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Shortest account tenure. Active consumer accounts only",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_max_open_dt": {
+                                        "title": "CreditCardOldestDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Largest account tenure. Active consumer accounts only",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_min_open_dt": {
+                                        "title": "CreditCardNewestDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Shortest account tenure. Active consumer accounts only",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cd_mat_date": {
+                                        "title": "CDMaturityDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Account Min maturity date. Is used for loan and investment accounts.. Active consumer accounts only",
+                                        "meta:xdmType": "date"
+                                    },
+                                    "cd_max_open_dt": {
+                                        "title": "CDMaxOpenDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Largest account tenure. Active consumer accounts only",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cd_min_open_dt": {
+                                        "title": "CDMinOpenDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Shortest account tenure. Active consumer accounts only",
+                                        "meta:xdmType": "date"
+                                    },
+                                    "chk_max_open_dt": {
+                                        "title": "CHKMaxOpenDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Largest account tenure. Active consumer accounts only",
+                                        "meta:xdmType": "date"
+                                    },
+                                    "chk_min_open_dt": {
+                                        "title": "CHKMinOpenDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Shortest account tenure. Active consumer accounts only",
+                                        "meta:xdmType": "date"
+                                    },
+                                    "cust_wf_br_opn_dt": {
+                                        "title": "CustomerAUBranchOpenDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Date when the branch was opened",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "debitcard_last_atm_dt": {
+                                        "title": "DCLastATMDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Date of customer's most recent ATM date",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "debitcard_last_offln_pos_dt": {
+                                        "title": "DCLastOfflineTxPostDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Date of customer's most recent offline transaction date",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "debitcard_last_onln_pos_dt": {
+                                        "title": "DCLastOnlineTxnPostDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Date of customer's most recent online transaction date",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "debitcard_last_use_dt": {
+                                        "title": "DCLastUseDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Date of customer's most recent debit card transaction date",
+                                        "meta:xdmType": "date"
+                                    },
+                                    "hm_max_open_dt": {
+                                        "title": "HomeMortgageOldestDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Largest account tenure. Active consumer accounts only",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "hm_min_mat_dt": {
+                                        "title": "HomeMinMaturityDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Account Min maturity date. Is used for loan and investment accounts.. Active consumer accounts only",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "hm_min_open_dt": {
+                                        "title": "HomeMortgageNewestDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Shortest account tenure. Active consumer accounts only",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "last_low_bal_alrt_subscrn_dt": {
+                                        "title": "DateOfLastLowBalanceAlrtSubscr",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Date of customer's most recent subscription to Low Balance Alerts. Dates are capped at 12 months for query optimization purposes. Records that are NULL either have not had activity within this date range or have never populated a value associated with this data element.",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "last_od_tran_dt": {
+                                        "title": "DateOfLastOverdraftTxn",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Date of customer's most recent overdraft transaction",
+                                        "meta:xdmType": "date"
+                                    },
+                                    "last_odp_alrt_subscrn_dt": {
+                                        "title": "DateOfLastODPAlertsSubscr",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Date of customer's most recent subscription to ODP alerts. Dates are capped at 12 months for query optimization purposes. Records that are NULL either have not had activity within this date range or have never populated a value associated with this data element.",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "last_use_cardonoff_dt": {
+                                        "title": "DateOfLastCardOnOffUse",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Date of customer's most recent use of the self-service “Turn Card On or Off” feature. Dates are capped at 12 months for query optimization purposes. Records that are NULL either have not had activity within this date range or have never populated a value associated with this data element.",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "lst_bnkr_book_eff_dt": {
+                                        "title": "LastBankerBookEffectiveDt",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Customer's last banker book effective date. If a customer has been assigned to more than one banker book, this date will reflect the date of the most recently-assigned banker book.",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "lst_cust_cmpln_dt": {
+                                        "title": "LastCustomerComplaintDt",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Customer's last filed sales or escalated complaint date.",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "mde_lst_ccrd_appl_dt": {
+                                        "title": "CreditCardLastApplicationDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "The latest date a customer has applied for a credit card",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "pcode_chg_xfer_dt": {
+                                        "title": "PcodeChangeTransferDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Pcode Change Transfer Date",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "pll_max_open_dt": {
+                                        "title": "PersonalLinesOldestDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Largest account tenure. Active consumer accounts only",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "pll_min_mat_dt": {
+                                        "title": "PersonalLoanMinMaturityDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Account Min maturity date. Is used for loan and investment accounts.. Active consumer accounts only",
+                                        "meta:xdmType": "date"
+                                    },
+                                    "pll_min_open_dt": {
+                                        "title": "PersonalLinesNewestDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Shortest account tenure. Active consumer accounts only",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "pma_max_opn_dt": {
+                                        "title": "PMAMaxOpenDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "pma_min_opn_dt": {
+                                        "title": "PMAMinOpenDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "rel_start_dt": {
+                                        "title": "RelationshipStartDt",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Relationship start date",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "off_us_lst_txn_for_compt_in_lst_6_mo_dt": {
+                                        "title": "OffUsLstTxnComptLst6MoDt",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Last date of the ACH transfer from a customer's account(s) to any of the nine investment competitors in the last six months",
+                                        "meta:xdmType": "date"
+                                    },
+                                    "off_us_lst_updt_dt": {
+                                        "title": "OffUsLastUpdtDate",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Creation date of the record in the table",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "fin_goal_cnvrs_dt": {
+                                        "title": "CRVSFDNCustCreatedDt",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Date/time in GMT the question/answer was created",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "bev_evnt_dt": {
+                                        "title": "BevEvntDat",
+                                        "type": "string",
+                                        "format": "date",
+                                        "description": "Event Date is the calendar day on which a BEV event occurred.",
+                                        "meta:xdmType": "date",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "foundational_eff_dt_tm": {
+                                        "title": "FoundationalEFFDtTm",
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "description": "DSR create date/time",
+                                        "meta:xdmType": "date-time",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "max_ap2k_appl_crtn_tmstp": {
+                                        "title": "SavingsACCTLastOnlineDatetime",
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "description": "More recent date an online application for savings account was submitted",
+                                        "meta:xdmType": "date-time",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "bev_evnt_tmstp": {
+                                        "title": "BevEvntTmstp",
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "description": "Start date and time of the banking event",
+                                        "meta:xdmType": "date-time",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "assoc_bus_ecn_ind": {
+                                        "title": "AssociatedBusinessECN",
+                                        "type": "string",
+                                        "description": "The business ECN that a consumer ECN is associated with.",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "bus_relt_mgr_bnker_id": {
+                                        "title": "RelationshipMgrBusiness",
+                                        "type": "string",
+                                        "description": "Banker ID of the relationship manager - business.",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_acct_bal_ptile": {
+                                        "title": "CreditCardAccountBalancePtile",
+                                        "type": "number",
+                                        "description": "Percentile of sum of balances. Active consumer accounts only",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_bal_bnd": {
+                                        "title": "CreditCardBandedAcctBalance",
+                                        "type": "string",
+                                        "description": "Balance band of sum of balances. Active consumer accounts only",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_reward_sum_bal": {
+                                        "title": "CreditCardRewardsBalance",
+                                        "type": "integer",
+                                        "description": "Sum of credit card rewards balances",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cr_cls_up_fico_vrnc_amt": {
+                                        "title": "CloseUpFICOVariance_1",
+                                        "type": "integer",
+                                        "description": "Field that contains Credit Close-Up FICO variance based on customers' min/max dates in table",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int"
+                                    },
+                                    "dgtl_wlt_dvc_typ_nm": {
+                                        "title": "DigitalWalletDeviceType",
+                                        "type": "string",
+                                        "description": "Field to contain customer's Digital Wallet Device Type.",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "dly_crnt_cust_cr_score_band_amt": {
+                                        "title": "CustomerCreditScoreBand",
+                                        "type": "string",
+                                        "description": "Band of customer current credit score. ",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "dsgn_mkt_area_cd": {
+                                        "title": "DesignatedMarketAreaCode",
+                                        "type": "integer",
+                                        "description": "Code of Designated Market Area appended from Nielsen Media Research. Sourced from Nielson Research. Every county in the US is assigned exclusively to one DMA.",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "dsgn_mkt_area_nm": {
+                                        "title": "DesignatedMarketArea",
+                                        "type": "string",
+                                        "description": "Name of Designated Market Area appended from Nielsen Media Research. Sourced from Nielson Research. Every county in the US is assigned exclusively to one DMA.",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "eci_sub_seg_cd": {
+                                        "title": "ECISubSegment",
+                                        "type": "string",
+                                        "description": "",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "hv_cd": {
+                                        "title": "HighValueCategory",
+                                        "type": "string",
+                                        "description": "A flag indicating the customer high value category",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "indiv_relt_mgr_bnker_id": {
+                                        "title": "RelationshipMgrIndividual",
+                                        "type": "string",
+                                        "description": "Banker ID of the relationship manager - individual.",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "lst_intractn_bnker_job_cd": {
+                                        "title": "LastInteractionBankerJobCd",
+                                        "type": "string",
+                                        "description": "The job code of banker who assisted customer during their last interaction. Last interaction is defined as the most recent face-to-face interaction between a customer and banker inside a branch location.",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "lst_intractn_typ_nm": {
+                                        "title": "LastBankerInteractionType",
+                                        "type": "string",
+                                        "description": "The interaction type of customer's last interaction. Last interaction is defined as the most recent face-to-face interaction between a customer and banker inside a branch location.",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "ptype_cd_pstype_cd_list_txt": {
+                                        "title": "ProductSubproductHoldings",
+                                        "type": "string",
+                                        "description": "",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "sav_acct_bal_ptile": {
+                                        "title": "SavingsAccountBalancePtile",
+                                        "type": "number",
+                                        "description": "Percentile of sum of balances. Active consumer accounts only",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "sav_acct_count": {
+                                        "title": "SavingsAccountCount",
+                                        "type": "integer",
+                                        "description": "Number of accounts. Active consumer accounts only",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int"
+                                    },
+                                    "sav_bal_band_clng_amt": {
+                                        "title": "SavingsBalanceBandCeilingAmount",
+                                        "type": "integer",
+                                        "description": "The upper bound of balance band of total balance across all active consumer saving accounts.",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int"
+                                    },
+                                    "sav_bal_bnd": {
+                                        "title": "SavingsBandedAcctBalance",
+                                        "type": "string",
+                                        "description": "Balance band of sum of balances. Active consumer accounts only",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "state_cd": {
+                                        "title": "State",
+                                        "type": "string",
+                                        "description": "Customer primary address state",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "stdnt_sgmnt": {
+                                        "title": "StudentSegment",
+                                        "type": "integer",
+                                        "description": "Student segment category",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "zelle_trans_snt_lst_30_dys_cnt": {
+                                        "title": "ZelleTxnCountIn30Days",
+                                        "type": "integer",
+                                        "description": "Number of Zelle transactions sent in last 30 days",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int"
+                                    },
+                                    "zip_cd": {
+                                        "title": "PostalCode",
+                                        "type": "number",
+                                        "description": "Customer primary address postal code or zip code",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "au_num": {
+                                        "title": "CustomerBranchAU",
+                                        "type": "string",
+                                        "description": "Branch accounting unit ",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "autombl_ln_bal_amt": {
+                                        "title": "AutoLoanBalance",
+                                        "type": "number",
+                                        "description": "",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "avg_bal_comp_cc": {
+                                        "title": "CompetitorCCAvgBalancePaid",
+                                        "type": "number",
+                                        "description": "Derived numeric field based on last 12 months of  payments across all competitor credit cards",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_acct_count": {
+                                        "title": "CreditCardAccountCount",
+                                        "type": "integer",
+                                        "description": "Number of accounts. Active consumer accounts only",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_dlq_in": {
+                                        "title": "CreditCardNoDelinquency",
+                                        "type": "number",
+                                        "description": "Is in delinquency (credit card). Active consumer accounts only",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_int_amt_bnd_1m": {
+                                        "title": "CCIntAmtBnd1M",
+                                        "type": "string",
+                                        "description": "Band of CC interest amount on last statement, calculated on total interest across all consumer CC accounts",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_int_amt_bnd_avg_12m": {
+                                        "title": "CCIntAmtBnd12M",
+                                        "type": "string",
+                                        "description": "Band of average CC interest amount on last statement, calculated on total interest across all consumer CC accounts, over the previous 12 months",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_int_amt_bnd_avg_3m": {
+                                        "title": "CCIntAmtBnd3M",
+                                        "type": "string",
+                                        "description": "Band of average CC interest amount on last statement, calculated on total interest across all consumer CC accounts, over the previous 3 months",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_int_amt_bnd_avg_6m": {
+                                        "title": "CCIntAmtBnd6M",
+                                        "type": "string",
+                                        "description": "Band of average CC interest amount on last statement, calculated on total interest across all consumer CC accounts, over the previous 6 months",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_int_amt_bnd_avg_9m": {
+                                        "title": "CCIntAmtBnd9M",
+                                        "type": "string",
+                                        "description": "Band of average CC interest amount on last statement, calculated on total interest across all consumer CC accounts, over the previous 9 months",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_int_amt_bnd_min_12m": {
+                                        "title": "CCIntAmtBndMin12M",
+                                        "type": "string",
+                                        "description": "Band of minimum CC interest amount on last statement, calculated on total interest across all consumer CC accounts, over the previous 12 months",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_int_amt_bnd_min_3m": {
+                                        "title": "CCIntAmtBndMin3M",
+                                        "type": "string",
+                                        "description": "Band of minimum CC interest amount on last statement, calculated on total interest across all consumer CC accounts, over the previous 3 months",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_int_amt_bnd_min_6m": {
+                                        "title": "CCIntAmtBndMin6M",
+                                        "type": "string",
+                                        "description": "Band of minimum CC interest amount on last statement, calculated on total interest across all consumer CC accounts, over the previous 6 months",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_int_amt_bnd_min_9m": {
+                                        "title": "CCIntAmtBndMin9M",
+                                        "type": "string",
+                                        "description": "Band of minimum CC interest amount on last statement, calculated on total interest across all consumer CC accounts, over the previous 9 months",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_int_amt_n_stddev_12m": {
+                                        "title": "CCIntAmtNStdDev12M",
+                                        "type": "number",
+                                        "description": "Normalized standard deviation of CC interest amount on last statement, calculated on total interest across all consumer CC accounts, over the previous 12 months",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_int_amt_n_stddev_3m": {
+                                        "title": "CCIntAmtNStdDev3M",
+                                        "type": "number",
+                                        "description": "Normalized standard deviation of CC interest amount on last statement, calculated on total interest across all consumer CC accounts, over the previous 3 months",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_int_amt_n_stddev_6m": {
+                                        "title": "CCIntAmtNStdDev6M",
+                                        "type": "number",
+                                        "description": "Normalized standard deviation of CC interest amount on last statement, calculated on total interest across all consumer CC accounts, over the previous 6 months",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_int_amt_n_stddev_9m": {
+                                        "title": "CCIntAmtNStdDev9M",
+                                        "type": "number",
+                                        "description": "Normalized standard deviation of CC interest amount on last statement, calculated on total interest across all consumer CC accounts, over the previous 9 months",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cc_min_credit_ln": {
+                                        "title": "MinimumCreditLine",
+                                        "type": "number",
+                                        "description": "Min account credit line. Active consumer accounts only",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "ccrd_avg_3_mo_bal_amt": {
+                                        "title": "CCAvgBalance3M",
+                                        "type": "number",
+                                        "description": "",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cd_6_mo_avg_bal_band_clng_amt": {
+                                        "title": "CDBalanceBandCeilingAmount6M",
+                                        "type": "integer",
+                                        "description": "The upper bound of balance band of average daily balance calculated on total balance across all consumer certificate of deposit accounts, over the previous 6 months.",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int"
+                                    },
+                                    "cd_acct_bal_ptile": {
+                                        "title": "CDAccountBalancePtile",
+                                        "type": "number",
+                                        "description": "Percentile of sum of balances. Active consumer accounts only",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cd_acct_count": {
+                                        "title": "CDAccountCount",
+                                        "type": "integer",
+                                        "description": "Number of accounts. Active consumer accounts only",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int"
+                                    },
+                                    "cd_avg_rate": {
+                                        "title": "CDAvgRate",
+                                        "type": "number",
+                                        "description": "This is the average rate on the account. Can be used for interest rate or mortgage rate. Dependent on type of account.. Active consumer accounts only",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cd_bal_band_clng_amt": {
+                                        "title": "CDBalanceBandCeilingAmount",
+                                        "type": "integer",
+                                        "description": "The upper bound of balance band of total balance across all active consumer certificate of deposit accounts.",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int"
+                                    },
+                                    "cd_bal_bnd": {
+                                        "title": "CDBandedAcctBalance",
+                                        "type": "string",
+                                        "description": "Balance band of sum of balances. Active consumer accounts only",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "chk_6_mo_avg_bal_band_clng_amt": {
+                                        "title": "CheckingBalanceBandCeilingAmount6M",
+                                        "type": "integer",
+                                        "description": "The upper bound of balance band of average daily balance calculated on total balance across all consumer checking accounts, over the previous 6 months.",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int"
+                                    },
+                                    "chk_acct_bal_ptile": {
+                                        "title": "CHKAccountBalancePtile",
+                                        "type": "number",
+                                        "description": "Percentile of sum of balances. Active consumer accounts only",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "chk_acct_count": {
+                                        "title": "CHKAccountCount",
+                                        "type": "integer",
+                                        "description": "Number of accounts. Active consumer accounts only",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int"
+                                    },
+                                    "chk_avg_daily_bal_bnd_12m": {
+                                        "title": "CHKAvgDailyBalBnd12M",
+                                        "type": "string",
+                                        "description": "Balance band of average daily balance calculated on total balance across all consumer checking accounts, over the previous 12 months",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "chk_avg_daily_bal_bnd_1m": {
+                                        "title": "CHKAvgDailyBalBnd1M",
+                                        "type": "string",
+                                        "description": "Balance band of average daily balance calculated on total balance across all consumer checking accounts, over the previous month",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "chk_avg_daily_bal_bnd_3m": {
+                                        "title": "CHKAvgDailyBalBnd3M",
+                                        "type": "string",
+                                        "description": "Balance band of average daily balance calculated on total balance across all consumer checking accounts, over the previous 3 months",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "chk_avg_daily_bal_bnd_6m": {
+                                        "title": "CHKAvgDailyBalBnd6M",
+                                        "type": "string",
+                                        "description": "Balance band of average daily balance calculated on total balance across all consumer checking accounts, over the previous 6 months",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "chk_avg_daily_bal_bnd_9m": {
+                                        "title": "CHKAvgDailyBalBnd9M",
+                                        "type": "string",
+                                        "description": "Balance band of average daily balance calculated on total balance across all consumer checking accounts, over the previous 9 months",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "chk_avg_daily_bal_bnd_min_12m": {
+                                        "title": "CHKAvgDailyBalBndMin12M",
+                                        "type": "string",
+                                        "description": "Balance band of minimum monthly average daily balance, calculated on total balance across all consumer checking accounts, over the previous 12 months",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "chk_avg_daily_bal_bnd_min_3m": {
+                                        "title": "CHKAvgDailyBalBndMin3M",
+                                        "type": "string",
+                                        "description": "Balance band of minimum monthly average daily balance, calculated on total balance across all consumer checking accounts, over the previous 3 months",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "chk_avg_daily_bal_bnd_min_6m": {
+                                        "title": "CHKAvgDailyBalBndMin6M",
+                                        "type": "string",
+                                        "description": "Balance band of minimum monthly average daily balance, calculated on total balance across all consumer checking accounts, over the previous 6 months",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "chk_avg_daily_bal_bnd_min_9m": {
+                                        "title": "CHKAvgDailyBalBndMin9M",
+                                        "type": "string",
+                                        "description": "Balance band of minimum monthly average daily balance, calculated on total balance across all consumer checking accounts, over the previous 9 months",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "chk_avg_daily_bal_n_stddev_12m": {
+                                        "title": "CHKAvgDailyBalNStdDev12M",
+                                        "type": "number",
+                                        "description": "Normalized standard deviation of monthly average daily balance, calculated on total balance across all consumer checking accounts, over the previous 12 months",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "chk_avg_daily_bal_n_stddev_3m": {
+                                        "title": "CHKAvgDailyBalNStdDev3M",
+                                        "type": "number",
+                                        "description": "Normalized standard deviation of monthly average daily balance, calculated on total balance across all consumer checking accounts, over the previous 3 months",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "chk_avg_daily_bal_n_stddev_6m": {
+                                        "title": "CHKAvgDailyBalNStdDev6M",
+                                        "type": "number",
+                                        "description": "Normalized standard deviation of monthly average daily balance, calculated on total balance across all consumer checking accounts, over the previous 6 months",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "chk_avg_daily_bal_n_stddev_9m": {
+                                        "title": "CHKAvgDailyBalNStdDev9M",
+                                        "type": "number",
+                                        "description": "Normalized standard deviation of monthly average daily balance, calculated on total balance across all consumer checking accounts, over the previous 9 months",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "chk_avg_rate": {
+                                        "title": "CheckingAvgRate",
+                                        "type": "number",
+                                        "description": "This is the average rate on the account. Can be used for interest rate or mortgage rate. Dependent on type of account.. Active consumer accounts only",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "chk_bal_band_clng_amt": {
+                                        "title": "CheckingBalanceBandCeilingAmount",
+                                        "type": "integer",
+                                        "description": "The upper bound of balance band of total balance across all active consumer checking accounts.",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int"
+                                    },
+                                    "chk_bal_bnd": {
+                                        "title": "CHKBandedAccountBalance",
+                                        "type": "string",
+                                        "description": "Balance band of sum of balances. Active consumer accounts only",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "comb_6_mo_avg_bal_band_clng_amt": {
+                                        "title": "ChkSavCDBalanceBandCeilingAmount6M",
+                                        "type": "integer",
+                                        "description": "The upper bound of balance band of average daily balance calculated on total balance across all consumer certificate of deposit, checking and saving accounts, over the previous 6 months.",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int"
+                                    },
+                                    "comb_bal_band_amt": {
+                                        "title": "ChkSavCDBalanceBandAmount",
+                                        "type": "string",
+                                        "description": "Balance band of total balance across all active consumer certificate of deposit, checking and saving account balances.",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "comb_bal_band_clng_amt": {
+                                        "title": "ChkSavCDBalanceBandCeilingAmount",
+                                        "type": "integer",
+                                        "description": "The upper bound of balance band of total balance across all active consumer certificate of deposit, checking and saving accounts.",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int"
+                                    },
+                                    "comp_cc_and_avg_bal": {
+                                        "title": "CompNameAndCCAvgBalPaid",
+                                        "type": "string",
+                                        "description": "Delimited field populated with name of competitor (string value) and average dollar amount paid (numeric value) based on last 12 months of payments for the competitor",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cust_own_mgr_emp_id": {
+                                        "title": "CustomerBranchBankerID",
+                                        "type": "string",
+                                        "description": "Banker HRIS ID; for those assigned to a banker",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "cust_own_mgt_typ_cd": {
+                                        "title": "CRVBookCustType",
+                                        "type": "string",
+                                        "description": "Customer ownership management type (formerly known as book type) provides a definition for the type of business relationship that exists between a customer and the Wells Fargo Team Member who is responsible for managing the relationship. ",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "cust_type_cd": {
+                                        "title": "CustomerType",
+                                        "type": "integer",
+                                        "description": "Customer Type Indicator (0 = consumer, 2 = business).",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int"
+                                    },
+                                    "eci_seg_cd": {
+                                        "title": "ECISegment",
+                                        "type": "string",
+                                        "description": "Enterprise Customer Identification (ECI) segment",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "hm_acct_bal_ptile": {
+                                        "title": "HomeAccountBalancePtile",
+                                        "type": "number",
+                                        "description": "Percentile of sum of balances. Active consumer accounts only",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "hm_acct_count": {
+                                        "title": "HomeMortgageAccountCount",
+                                        "type": "integer",
+                                        "description": "Number of accounts. Active consumer accounts only",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "hm_avg_rate": {
+                                        "title": "HomeAverageRate",
+                                        "type": "number",
+                                        "description": "This is the average rate on the account. Can be used for interest rate or mortgage rate. Dependent on type of account.. Active consumer accounts only",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "hm_bal_bnd": {
+                                        "title": "HomeMortgageBandedAcctBalance",
+                                        "type": "string",
+                                        "description": "Balance band of sum of balances. Active consumer accounts only",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "hm_dlq_in": {
+                                        "title": "HomeMortgageNoDelinquency",
+                                        "type": "number",
+                                        "description": "Delinquency indicator. Active consumer accounts only",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "lst_cust_cmpln_type_nm": {
+                                        "title": "LastCustomerComplaintType",
+                                        "type": "string",
+                                        "description": "Customer's last filed complaint type (service or escalated).",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "num_of_comp_cc": {
+                                        "title": "CompetitorCreditCardCount",
+                                        "type": "integer",
+                                        "description": "Derived numeric field based on number of competitor credit cards customer is making payments to",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "odp_enroll_ind": {
+                                        "title": "ODPEnrolledCustomer",
+                                        "type": "integer",
+                                        "description": "Customers enorlled in overdraft protection",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int"
+                                    },
+                                    "pll_acct_bal_ptile": {
+                                        "title": "PersonalLoanAccountBalanceP_1 ",
+                                        "type": "number",
+                                        "description": "Percentile of sum of balances. Active consumer accounts only",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "pll_acct_count": {
+                                        "title": "PersonalLinesAccountCount",
+                                        "type": "integer",
+                                        "description": "Number of accounts. Active consumer accounts only",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "pll_bal_bnd": {
+                                        "title": "PersonalLinesBandedAcctBalance",
+                                        "type": "string",
+                                        "description": "Balance band of sum of balances. Active consumer accounts only",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "pma_acct_cnt": {
+                                        "title": "PMAAccountCount",
+                                        "type": "integer",
+                                        "description": "",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "sav_6_mo_avg_bal_band_clng_amt": {
+                                        "title": "SavingsBalanceBandCeilingAmount6M",
+                                        "type": "integer",
+                                        "description": "The upper bound of balance band of average daily balance calculated on total balance across all consumer saving accounts, over the previous 6 months.",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "sml_bus_chk_acct_curr_bal_amt": {
+                                        "title": "SmallBusChkAcctCurrBalAmt",
+                                        "type": "number",
+                                        "description": "Small Business Checking Account Current Balance Amount",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "off_us_ach_dir_compt_cnt": {
+                                        "title": "OffUsACHDirComptCnt",
+                                        "type": "integer",
+                                        "description": "Count of competitors (among the nine competitors specified by the WIM LOB) that a customer sent investment funds to through ACH in the last six months",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int"
+                                    },
+                                    "tot_compt_invst_amt_in_lst_6_mo_amt": {
+                                        "title": "TotComptInvestLst6MoAmt",
+                                        "type": "number",
+                                        "description": "Total amount of investment money transferred from a customer's account(s) to any of the nine investment competitors through ACH in the last six months",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "non_dgtal_pmt_in_lst_6_mo_ind": {
+                                        "title": "NonDigitalPmtLst6MoInd",
+                                        "type": "string",
+                                        "description": "Identifies if there has been a Non Digital Payment made on any of the customer's credit card accounts in the last 6 months. Branch Payments, Phone Payments, Wire Payments, ATM Payments and Mail Payments are considered Non Digital Payment Channels. 'Y' means there has been a Non-Digital Payment",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "no_autopay_ind": {
+                                        "title": "NoAutoPayInd",
+                                        "type": "string",
+                                        "description": "Identifies if there is atleast one credit card account  of a customer that has not been setup on autopay captured as 'Y'",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "dgtal_incm_capt_elig_ind": {
+                                        "title": "DigitalEligibleInd",
+                                        "type": "integer",
+                                        "description": "Identifies if the customer is eligible to be displayed a splash marketing message prompting the customer to enter income on a newly generated M3 landing page",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int"
+                                    },
+                                    "fin_goal_cnvrs_id": {
+                                        "title": "CRVSFDNCustAssessInstnce",
+                                        "type": "string",
+                                        "description": "Unique ID for the review. You will need this to join to V_CRVSF_DN_CUST_ASSESS_INSTNCE",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "fin_goal_qstn_txt": {
+                                        "title": "CRVSFDNCustFinanceGoal",
+                                        "type": "string",
+                                        "description": "WHERE QUESTION = 'Financial goals selected'. This will give you the consumer related goals selected.",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "fin_goal_ansr_txt": {
+                                        "title": "CRVSFDNCustAnswerGoal",
+                                        "type": "string",
+                                        "description": "Answer to the specified question. Multiple choice answers are concatenated into one field with either a semi colon or comma separating",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "evnt_type_cd": {
+                                        "title": "BevEvntTypeCD",
+                                        "type": "integer",
+                                        "description": "Event Type Code is a numeric value that uniquely identifies a combination of Operation Name and Implementation Name. The most common codes are: 22 Account Summary 23 Account Detail 28 Sign On 46 Funds Transfer 47 Sign Off 106 Bill Payment",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "acct_xfr_from_pcode": {
+                                        "title": "AcctXfrfromPcode",
+                                        "type": "string",
+                                        "description": "Product code that the account was prior to the digital pcode switch.",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "acct_xfr_to_pcode": {
+                                        "title": "AcctXfrToPcode",
+                                        "type": "string",
+                                        "description": "Product code that the account was switched to via the digital pcode switch.",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "chg_over_1_dy_dep_amt": {
+                                        "title": "DDACHANGEOVER1DAYAMT",
+                                        "type": "number",
+                                        "description": "Change in deposit amount over 1 day",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "chg_over_1_dy_dep_pct": {
+                                        "title": "DDACHANGEOVER1DAYPCT",
+                                        "type": "number",
+                                        "description": "Percent change in deposit amount over 1 day",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "chg_over_1_mo_dep_amt": {
+                                        "title": "DDACHANGEOVER1MONTHAMT",
+                                        "type": "number",
+                                        "description": "Change in deposit amount over 1 month (30 days)",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "chg_over_1_mo_dep_pct": {
+                                        "title": "DDACHANGEOVER1MONTHPCT",
+                                        "type": "number",
+                                        "description": "Percent change in deposit amount over 1 month (30 days)",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "chg_over_3_mo_dep_amt": {
+                                        "title": "DDACHANGEOVER3MONTHAMT",
+                                        "type": "number",
+                                        "description": "Change in deposit amount over 3 months (90 days)",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "chg_over_3_mo_dep_pct": {
+                                        "title": "DDACHANGEOVER3MONTHPCT",
+                                        "type": "number",
+                                        "description": "Percent change in deposit amount over 3 months (90 days)",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "chg_over_6_mo_dep_amt": {
+                                        "title": "DDACHANGEOVER6MONTHAMT",
+                                        "type": "number",
+                                        "description": "Change in deposit amount over 6 months (180 days)",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "chg_over_6_mo_dep_pct": {
+                                        "title": "DDACHANGEOVER6MONTHPCT",
+                                        "type": "number",
+                                        "description": "Percent change in deposit amount over 6 months (180 days)",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "curr_dep_bal_amt": {
+                                        "title": "DDACurrentBalance",
+                                        "description": "Current Deposit Balance",
+                                        "type": "number",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "one_dy_ago_dep_bal_amt": {
+                                        "title": "DDABalance1DayAgo",
+                                        "description": "Deposit Balance 1 day ago",
+                                        "type": "number",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "one_mo_ago_dep_bal_amt": {
+                                        "title": "DDABalance1MonthAgo",
+                                        "description": "Deposit Balance 1 month ago (30 days)",
+                                        "type": "number",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "three_mo_ago_dep_bal_amt": {
+                                        "title": "DDABalance3MonthAgo",
+                                        "description": "Deposit Balance 3 months ago (90 days)",
+                                        "type": "number",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "six_mo_ago_dep_bal_amt": {
+                                        "title": "DDABalance6MonthAgo",
+                                        "description": "Deposit Balance 6 months ago (180 days)",
+                                        "type": "number",
+                                        "meta:xdmType": "number"
+                                    },
+                                    "cd_acct_wth_spcl_prc_and_mat_dt_in_3_to_25_dys_ind": {
+                                        "title": "CDPriceMaturity3To25Day",
+                                        "description": "Indicates if the customer has any CD Accounts which have a special pricing and a maturity date in 3 to 25 days",
+                                        "type": "integer",
+                                        "meta:xdmType": "int",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:status": "deprecated"
+                                    },
+                                    "naics_cd": {
+                                        "title": "CDNAICCode",
+                                        "description": "The North American Industrial Classification code is a six digit code that represents an industry classification system that groups establishments into industries based on the activities in which thay are primarily engaged.  It is a comprehensive system covering the entire field of economic activities, producing and non-producing.",
+                                        "type": "string",
+                                        "meta:xdmType": "string",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "upcmng_sml_bus_cd_mat_dt": {
+                                        "title": "CDSmallBusMaturityDt",
+                                        "description": "Maturity Date of the soonest to mature Small Business CD belonging to the customer. This field is only populated for customers owning Business Time Accounts (Product Code = B4)",
+                                        "type": "string",
+                                        "format": "date",
+                                        "meta:xdmType": "date"
+                                    },
+                                    "upcmng_sml_bus_cd_pcode": {
+                                        "title": "CDSmallBusProductCd",
+                                        "description": "Combination of the product type and sub product code of the soonest to mature Small Business CD belonging to the customer. This field is only populated for customers owning Business Time Accounts (Product Code = B4)",
+                                        "type": "string",
+                                        "meta:xdmType": "string"
+                                    },
+                                    "sml_bus_dep_csh_mtd_amt": {
+                                        "title": "SmBusDepositCashMtdAmt",
+                                        "description": "Dollar amount of cash deposits for calendar month for all small business accounts owned by the customer",
+                                        "type": "number",
+                                        "meta:xdmType": "number",
+                                        "meta:status": "deprecated"
+                                    },
+                                    "sml_bus_chk_mtd_cnt": {
+                                        "title": "SmBusCheckMtdCount",
+                                        "description": "Count of checks posted and not reversed for calendar month for all small business accounts owned by the customer. This number represents the number of checks that attempted to post to the account. This includes paid items and rejected items. There are 2 classes of rejected items that increment the counter: the first is those that are rejected due to OBP/OTP classifications, the second is those rejected based on rules from the risk models (such as Good Decisions).",
+                                        "type": "integer",
+                                        "meta:xdmType": "int",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:status": "deprecated"
+                                    },
+                                    "ownr_of_bus_ind": {
+                                        "title": "OwnershipOfBusInd",
+                                        "description": "Indicates if the customer has an ownership relationship with a business",
+                                        "type": "integer",
+                                        "meta:xdmType": "int",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647
+                                    },
+                                    "prmr_chk_acct_digitally_opn_in_the_lst_60_dys_ind": {
+                                        "title": "PremierChkActDgtOpnLst60Day",
+                                        "type": "integer",
+                                        "format": "integer",
+                                        "description": "Indicates if the customer had digitally opened a Premier Checking Account in the last 60 days. A value of 1 indicates that the customer has met the above criteria and a value of 0 indicates that the customer has not",
+                                        "minimum": -2147483648,
+                                        "maximum": 2147483647,
+                                        "meta:xdmType": "int",
+                                        "meta:status": "deprecated"
+                                    }
+                                },
+                                "meta:xdmType": "object"
+                            }
+                        },
+                        "meta:xdmType": "object"
+                    }
+                }
+            }
+        },
+        "allOf": [{
+                "$ref": "#/definitions/capWfmrmFoundationalAttributes",
+                "type": "object",
+                "meta:xdmType": "object"
+            }
+        ],
+        "meta:extensible": true,
+        "meta:abstract": true,
+        "meta:intendedToExtend": [],
+        "meta:xdmType": "object",
+        "meta:sandboxId": "8ff9f974-07e2-4aed-b9f9-7407e2caed6c",
+        "meta:sandboxType": "production"
+    }, {
+        "$id": "https://ns.adobe.com/<XDM_TENANTID_PLACEHOLDER>/mixins/3f032d9ef9081349f4abfc1efa192908d199092728c4b1a6",
+        "meta:altId": "_<XDM_TENANTID_PLACEHOLDER>.mixins.3f032d9ef9081349f4abfc1efa192908d199092728c4b1a6",
+        "meta:resourceType": "mixins",
+        "version": "1.68",
+        "title": "WellsFargo - Identities",
+        "type": "object",
+        "description": "WellsFargo - Identities",
+        "definitions": {
+            "customFields": {
+                "type": "object",
+                "properties": {
+                    "_<XDM_TENANTID_PLACEHOLDER>": {
+                        "type": "object",
+                        "properties": {
+                            "ECID": {
+                                "title": "Experience Cloud ID",
+                                "description": "",
+                                "type": "string",
+                                "meta:xdmType": "string",
+                                "required": []
+                            },
+                            "ECN": {
+                                "title": "ECN",
+                                "description": "",
+                                "type": "string",
+                                "meta:xdmType": "string",
+                                "required": []
+                            },
+                            "hashedECN": {
+                                "title": "hashedECN",
+                                "description": "",
+                                "type": "string",
+                                "meta:xdmType": "string",
+                                "required": []
+                            },
+                            "primaryEmailAddress": {
+                                "title": "Primary Email Address",
+                                "description": "Primary Email address SHA256 encrypted . Can be used as an identity for matching audiences/profile",
+                                "type": "string",
+                                "meta:xdmType": "string",
+                                "required": []
+                            },
+                            "primaryPhone": {
+                                "title": "Primary Phone",
+                                "meta:xdmType": "string",
+                                "description": "Primary phone number SHA256 encrypted . Can be used as an identity for matching audiences/profile",
+                                "type": "string",
+                                "required": []
+                            },
+                            "osmp_appl_id": {
+                                "title": "OSMP Application ID",
+                                "type": "string",
+                                "format": "string",
+                                "description": "OSMP Application ID is an internal application number generated by platform.",
+                                "meta:xdmType": "string",
+                                "required": []
+                            },
+                            "sm_biz_appl_id": {
+                                "minLength": 1,
+                                "required": [],
+                                "type": "string",
+                                "description": "",
+                                "title": "Small Business Application ID",
+                                "meta:xdmType": "string"
+                            }
+                        },
+                        "meta:xdmType": "object",
+                        "required": []
+                    }
+                },
+                "meta:xdmType": "object"
+            }
+        },
+        "allOf": [{
+                "$ref": "#/definitions/customFields",
+                "type": "object",
+                "meta:xdmType": "object"
+            }
+        ],
+        "meta:extensible": true,
+        "meta:abstract": true,
+        "meta:intendedToExtend": [],
+        "meta:xdmType": "object",
+        "meta:sandboxId": "8ff9f974-07e2-4aed-b9f9-7407e2caed6c",
+        "meta:sandboxType": "production"
+    }, {
+        "$id": "https://ns.adobe.com/<XDM_TENANTID_PLACEHOLDER>/schemas/2516c693afd19e1241101080b2cdc0029e27c371ec6b0488",
+        "meta:altId": "_<XDM_TENANTID_PLACEHOLDER>.schemas.2516c693afd19e1241101080b2cdc0029e27c371ec6b0488",
+        "meta:resourceType": "schemas",
+        "version": "1.1",
+        "title": "CAP WFMRM Foundational Schema",
+        "type": "object",
+        "description": "Schema to capture CAPMRM Foundational attributes",
+        "allOf": [{
+                "$ref": "https://ns.adobe.com/xdm/context/profile",
+                "type": "object",
+                "meta:xdmType": "object"
+            }, {
+                "$ref": "https://ns.adobe.com/<XDM_TENANTID_PLACEHOLDER>/mixins/2fa44c3861a2eb5dabc991e7199b7814c3058ae2f4c67a4",
+                "type": "object",
+                "meta:xdmType": "object"
+            }, {
+                "$ref": "https://ns.adobe.com/<XDM_TENANTID_PLACEHOLDER>/mixins/3f032d9ef9081349f4abfc1efa192908d199092728c4b1a6",
+                "type": "object",
+                "meta:xdmType": "object"
+            }, {
+                "$ref": "https://ns.adobe.com/xdm/common/external-source-system-audit-details",
+                "type": "object",
+                "meta:xdmType": "object"
+            }
+        ],
+        "meta:extensible": false,
+        "meta:abstract": false,
+        "meta:extends": ["https://ns.adobe.com/<XDM_TENANTID_PLACEHOLDER>/mixins/2fa44c3861a2eb5dabc991e7199b7814c3058ae2f4c67a4", "https://ns.adobe.com/xdm/common/auditable", "https://ns.adobe.com/xdm/data/record", "https://ns.adobe.com/xdm/context/profile", "https://ns.adobe.com/<XDM_TENANTID_PLACEHOLDER>/mixins/3f032d9ef9081349f4abfc1efa192908d199092728c4b1a6", "https://ns.adobe.com/xdm/common/external-source-system-audit-details"],
+        "meta:xdmType": "object",
+        "meta:class": "https://ns.adobe.com/xdm/context/profile",
+        "meta:sandboxId": "8ff9f974-07e2-4aed-b9f9-7407e2caed6c",
+        "meta:sandboxType": "production",
+        "meta:immutableTags": []
+    }, {
+        "@type": "xdm:descriptorIdentity",
+        "xdm:sourceSchema": "https://ns.adobe.com/<XDM_TENANTID_PLACEHOLDER>/schemas/2516c693afd19e1241101080b2cdc0029e27c371ec6b0488",
+        "xdm:sourceVersion": 1,
+        "xdm:sourceProperty": "/_<XDM_TENANTID_PLACEHOLDER>/ECN",
+        "xdm:namespace": "ECN",
+        "xdm:property": "xdm:code",
+        "xdm:isPrimary": true,
+        "meta:sandboxId": "8ff9f974-07e2-4aed-b9f9-7407e2caed6c",
+        "meta:sandboxType": "production",
+        "meta:resourceType": "descriptors"
+    }
+]

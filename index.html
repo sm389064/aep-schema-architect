@@ -156,9 +156,6 @@ body{display:flex;flex-direction:column}
 .upload-info-row{display:flex;align-items:center;gap:8px;font-size:12px;color:#444}
 .upload-info-row i{font-size:14px;color:#1473e6;flex-shrink:0}
 
-.sheet-sel-wrap{display:none;margin-top:12px}
-.sheet-sel-wrap.show{display:flex;align-items:center;gap:8px}
-
 /* ─── COLLAPSIBLES ─── */
 .ct{display:flex;align-items:center;gap:6px;font-size:12px;color:#6e6e6e;cursor:pointer;user-select:none;margin-top:14px}
 .ct:hover{color:#1473e6}
@@ -454,7 +451,7 @@ body{display:flex;flex-direction:column}
       <div class="s-section" id="sec-upload">
         <div class="s-card" id="card-upload">
           <div class="s-card-head">
-            <div class="s-ch-num" id="uploadStepNum">1</div>
+            <div class="s-ch-num" id="uploadStepNum"><i class="ti ti-upload"></i></div>
             <div>
               <div class="s-ch-title" id="uploadCardTitle">Upload your file</div>
               <div class="s-ch-meta" id="uploadCardMeta">Drag and drop or browse to select your file</div>
@@ -471,9 +468,12 @@ body{display:flex;flex-direction:column}
             <input type="file" id="ufi" accept=".xlsx,.xls,.csv,.json" style="display:none" onchange="onUFSel(this)">
 
             <!-- Sheet selector (if multiple sheets) -->
-            <div class="sheet-sel-wrap" id="sheetSelWrap">
-              <label style="font-size:12px;color:#6e6e6e;font-weight:600">Select sheet:</label>
-              <select class="fi" id="uSheetSelect" style="width:200px;height:32px;font-size:12px" onchange="onSheetChange()"></select>
+            <div class="s-alert a-info" id="sheetSelWrap">
+              <i class="ti ti-info-circle"></i>
+              <div style="flex:1;min-width:160px">
+                <div style="font-weight:600;margin-bottom:6px">This file has multiple sheets — choose which one to use:</div>
+                <select class="fi" id="uSheetSelect" style="width:220px;height:32px;font-size:12px" onchange="onSheetChange()"></select>
+              </div>
             </div>
 
             <!-- Info box explaining what will happen -->
@@ -514,29 +514,14 @@ body{display:flex;flex-direction:column}
   <div id="step2Panel">
 
     <div class="ctrl-bar">
-      <div class="ctrl-step" style="min-width:260px;flex-shrink:0">
-        <div class="step-lbl"><span class="sn">1</span> Upload Source File</div>
-        <div class="ctrl-row">
-          <div class="f">
-            <label>File — data dict, mapping or XDM JSON</label>
-            <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.json" style="width:200px">
-          </div>
-          <div class="f" id="sheetBox" style="display:none">
-            <label>Sheet</label><select id="sheetSelect" style="width:120px"></select>
-          </div>
-          <button class="btn btn-primary" id="loadBtn" onclick="loadData()" style="display:none"><i class="ti ti-table-import"></i> Load</button>
-        </div>
-        <div class="up-note" id="upNote"></div>
-      </div>
-
       <div class="ctrl-step">
-        <div class="step-lbl"><span class="sn">2</span> Field Group &amp; Object Mapping (Bulk Apply)</div>
+        <div class="step-lbl">Field Group &amp; Object Mapping (Bulk Apply)</div>
         <div class="ctrl-row">
-          <div class="f"><label>Tenant Node</label><input type="text" id="cTenant" placeholder="_myorg" style="width:100px"></div>
-          <div class="f"><label>Field Group Name</label><input type="text" id="cFieldGroup" placeholder="e.g. Customer Details FG" style="width:165px"></div>
+          <div class="f"><label>Tenant Node</label><input type="text" id="cTenant" placeholder="_myorg" style="width:100px" oninput="this.dataset.touched='1'"></div>
+          <div class="f" style="flex:1 1 165px"><label>Field Group Name</label><input type="text" id="cFieldGroup" placeholder="e.g. Customer Details FG" style="width:100%"></div>
           <div class="f"><label>Classification</label>
             <select id="cFGClass" style="width:95px"><option value="Custom">Custom</option><option value="OOTB">OOTB</option></select></div>
-          <div class="f"><label>Object Path</label><input type="text" id="cObjectPath" placeholder="e.g. customer.data.name" style="width:165px"></div>
+          <div class="f" style="flex:1 1 165px"><label>Object Path</label><input type="text" id="cObjectPath" placeholder="e.g. customer.data.name" style="width:100%"></div>
           <div class="f"><label>Is Array?</label><select id="cArray" style="width:200px" onchange="onArrChange()"><option value=""></option></select></div>
           <div class="f"><label>Identity</label>
             <select id="cIdentity" style="width:105px"><option value=""></option><option value="Primary">Primary</option><option value="Secondary">Secondary</option></select></div>
@@ -545,7 +530,7 @@ body{display:flex;flex-direction:column}
         <div class="cfg-ctx none" id="cfgCtx"></div>
         <div style="margin-top:6px">
           <span id="metaToggle" onclick="toggleMetaFields()" style="font-size:10px;color:#1473e6;cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:3px">
-            <i class="ti ti-chevron-right" id="metaChevron" style="font-size:11px"></i> Export Metadata
+            <i class="ti ti-chevron-right" id="metaChevron" style="font-size:11px"></i> Mapping Metadata
           </span>
           <div id="metaFields" style="display:none;margin-top:8px">
             <div class="ctrl-row" style="flex-wrap:wrap;gap:8px">
@@ -579,7 +564,7 @@ body{display:flex;flex-direction:column}
     <div class="tbl-wrap">
       <div class="tbl-card">
         <div class="tbl-topbar">
-          <div class="sec-title"><span class="sn">3</span> Mapping Table</div>
+          <div class="sec-title">Mapping Table</div>
           <div class="tbl-divider"></div>
           <button class="btn btn-success" onclick="addRow()"><i class="ti ti-row-insert-bottom"></i> Add Row</button>
           <button class="btn btn-success" onclick="openAddColModal()"><i class="ti ti-column-insert-right"></i> Add Column</button>

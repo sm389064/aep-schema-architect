@@ -115,57 +115,6 @@ function refreshArrDropdown(){
 }
 function onArrChange(){document.getElementById('cArray').dataset.current=document.getElementById('cArray').value;}
 
-/* ─── FILE INPUT ─── */
-function setupFileInput(){
-  document.getElementById('fileInput').addEventListener('change',e=>{
-    const f=e.target.files[0];if(!f)return;
-    const nm=f.name.toLowerCase();const r=new FileReader();
-    r.onload=ev=>{
-      if(nm.endsWith('.json')){
-        mode='json';
-        try{
-          const obj=JSON.parse(ev.target.result);
-          if(Array.isArray(obj)){
-            // Format 2: AEP schema export
-            const result=parseAEPExport(obj);
-            jsonRows=result.rows;
-            const tenant=result.tenant||'(detected from data)';
-            const fgCount=result.fieldGroupCount;
-            document.getElementById('sheetBox').style.display='none';
-            document.getElementById('loadBtn').style.display='inline-flex';
-            // Check if tenant is a placeholder (contains angle brackets)
-            const tenantBanner=document.getElementById('tenantPlaceholderBanner');
-            if(tenantBanner){
-              if(/[<>]/.test(result.tenant)){
-                document.getElementById('tenantPlaceholderInput').value='';
-                document.getElementById('tenantPlaceholderInput').dataset.placeholder=result.tenant;
-                tenantBanner.style.display='flex';
-              } else {
-                tenantBanner.style.display='none';
-              }
-            }
-            note(`AEP Schema Export · Tenant: <b>${esc(tenant)}</b> · ${jsonRows.length} fields · ${fgCount} field groups`);
-          } else {
-            // Format 1: existing XDM instance data
-            jsonRows=parseXDM(obj);
-            document.getElementById('sheetBox').style.display='none';
-            document.getElementById('loadBtn').style.display='inline-flex';
-            note(`JSON · Tenant: <b>${detectTenant(obj)||'none'}</b> · ${jsonRows.length} fields`);
-          }
-        }catch(err){setStatus('Invalid JSON: '+err.message,true);}
-      } else {
-        mode='sheet';
-        tempWB=XLSX.read(ev.target.result,{type:'binary'});
-        document.getElementById('sheetSelect').innerHTML=tempWB.SheetNames.map(n=>`<option>${n}</option>`).join('');
-        document.getElementById('sheetBox').style.display='flex';
-        document.getElementById('loadBtn').style.display='inline-flex';
-        note('Spreadsheet ready — choose a sheet and click Load');
-      }
-    };
-    if(nm.endsWith('.json'))r.readAsText(f);else r.readAsBinaryString(f);
-  });
-}
-
 // Step-1 (upload card) banner
 function applyTenantReplacement(){ applyTenantCore('tenantPlaceholderInput'); }
 // Step-2 (mapping table) banner
@@ -233,30 +182,6 @@ function applyTenantCore(inputId){
     jsonRows.forEach(replaceInRow);
     note(`AEP Schema Export · Tenant: <b>${esc(newTenant)}</b> · ${jsonRows.length} fields`);
   }
-}
-
-function loadData(){
-  pushH();collapsed={};s2Touched=false;prevSelCount=0;
-  document.getElementById('cTenant').value='';
-  document.getElementById('cFieldGroup').value='';
-  document.getElementById('cFGClass').value='Custom';
-  document.getElementById('cObjectPath').value='';
-  document.getElementById('cIdentity').value='';
-  if(mode==='json'){
-    data=jsonRows.map(r=>({...r}));
-    data.forEach(r=>customCols.forEach(c=>{if(r[c]===undefined)r[c]='';}));
-    setStatus(`Loaded ${data.length} fields from XDM JSON.`);
-  } else {
-    if(!tempWB){history.pop();updUR();return;}
-    const sheet=tempWB.Sheets[document.getElementById('sheetSelect').value];
-    const raw=XLSX.utils.sheet_to_json(sheet,{defval:""});
-    if(!raw.length){setStatus('Sheet is empty',true);history.pop();updUR();return;}
-    data=processSourceSheet(raw);
-    setStatus(`Loaded ${data.length} columns.`);
-  }
-  filterValues={};
-  initGroupOrder();
-  renderTable();
 }
 
 /* ─── ADD ROW ─── */
@@ -390,8 +315,21 @@ function editCell(i,col,val){
     if(data[i].__arrSeg==='__attr'){
       data[i]["Array"]=val+'[]';
     }
-    const tenant=document.getElementById('cTenant').value.trim()||extractTenant(data[i]["XDM Column Path"]);
-    data[i]["XDM Column Path"]=buildPath(tenant,data[i]["Field Group Classification"],data[i].__objectPath,val,data[i].__arrSeg);
+    const row=data[i];
+    const fgClass=row["Field Group Classification"];
+    const hasObjectPath=!!(row.__objectPath&&row.__objectPath.trim());
+    const hasFieldName=!!(val&&val.trim());
+    const tenantEl=document.getElementById('cTenant');
+    // OOTB fields never carry a tenant segment, so tenant is a non-issue there.
+    // For Custom fields, tenant only counts as "decided" once the user has
+    // actually interacted with the box — typing a value OR deliberately
+    // clearing it. Until then, we don't know what they want, so we leave
+    // XDM Column Path untouched rather than guessing.
+    const tenantDecided=fgClass==='OOTB'||tenantEl.dataset.touched==='1';
+    if(hasObjectPath&&hasFieldName&&tenantDecided){
+      const tenant=fgClass==='Custom'?tenantEl.value.trim():'';
+      row["XDM Column Path"]=buildPath(tenant,fgClass,row.__objectPath,val,row.__arrSeg);
+    }
     renderTable();
   }
 }
@@ -529,7 +467,7 @@ function rowDrop(e, targetIdx){
 }
 
 /* ─── MISC ─── */
-function note(msg){document.getElementById('upNote').innerHTML=msg||'';}
+function note(msg){const el=document.getElementById('upNote');if(el)el.innerHTML=msg||'';}
 function clearAll(){
   if(!confirm('Clear everything?'))return;
   pushH();data=[];collapsed={};customCols=[];groupOrder=[];s2Touched=false;prevSelCount=0;
@@ -573,7 +511,6 @@ document.addEventListener('DOMContentLoaded',function(){
     });
   });
 
-  setupFileInput();
   refreshArrDropdown();
   renderTable();
   updUR();
