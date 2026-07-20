@@ -476,6 +476,18 @@ body{display:flex;flex-direction:column}
               </div>
             </div>
 
+            <!-- Header row picker (some files have title/blank rows before the real headers) -->
+            <div class="s-alert a-info" id="headerRowWrap">
+              <i class="ti ti-table-row"></i>
+              <div style="flex:1;min-width:200px">
+                <div style="font-weight:600;margin-bottom:6px">Select Column Header</div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                  <select class="fi" id="uHeaderRowSelect" style="width:180px;height:32px;font-size:12px" onchange="onHeaderRowChange()"></select>
+                  <div id="uHeaderRowPreview" style="font-size:11px;color:#555;font-family:monospace"></div>
+                </div>
+              </div>
+            </div>
+
             <!-- Info box explaining what will happen -->
             <div class="upload-info-box" id="uploadInfoBox">
               <div class="upload-info-row" id="uInfoRow1"><i class="ti ti-info-circle"></i> <span id="uInfoText1">We'll parse your file and load it into the mapping table.</span></div>
@@ -517,11 +529,11 @@ body{display:flex;flex-direction:column}
       <div class="ctrl-step">
         <div class="step-lbl">Field Group &amp; Object Mapping (Bulk Apply)</div>
         <div class="ctrl-row">
-          <div class="f"><label>Tenant Node</label><input type="text" id="cTenant" placeholder="_myorg" style="width:100px" oninput="this.dataset.touched='1'"></div>
-          <div class="f" style="flex:1 1 165px"><label>Field Group Name</label><input type="text" id="cFieldGroup" placeholder="e.g. Customer Details FG" style="width:100%"></div>
+          <div class="f"><label>Tenant Node</label><input type="text" id="cTenant" placeholder="_myorg" style="width:100px;transition:width .15s ease" oninput="this.dataset.touched='1'" onfocus="this.style.width='280px'" onblur="this.style.width='100px'"></div>
+          <div class="f" style="flex:1 1 165px;transition:flex .15s ease"><label>Field Group Name</label><input type="text" id="cFieldGroup" placeholder="e.g. Customer Details FG" style="width:100%" onfocus="this.parentElement.style.flex='3 1 165px'" onblur="this.parentElement.style.flex='1 1 165px'"></div>
           <div class="f"><label>Classification</label>
             <select id="cFGClass" style="width:95px"><option value="Custom">Custom</option><option value="OOTB">OOTB</option></select></div>
-          <div class="f" style="flex:1 1 165px"><label>Object Path</label><input type="text" id="cObjectPath" placeholder="e.g. customer.data.name" style="width:100%"></div>
+          <div class="f" style="flex:1 1 165px;transition:flex .15s ease"><label>Object Path</label><input type="text" id="cObjectPath" placeholder="e.g. customer.data.name" style="width:100%" onfocus="this.parentElement.style.flex='3 1 165px'" onblur="this.parentElement.style.flex='1 1 165px'"></div>
           <div class="f"><label>Is Array?</label><select id="cArray" style="width:200px" onchange="onArrChange()"><option value=""></option></select></div>
           <div class="f"><label>Identity</label>
             <select id="cIdentity" style="width:105px"><option value=""></option><option value="Primary">Primary</option><option value="Secondary">Secondary</option></select></div>
@@ -650,7 +662,7 @@ body{display:flex;flex-direction:column}
 /* ─── STATE ─── */
 var currentMode = null;   // 'aep' | 'standardize' | 'dictionary'
 var setupRaw = {}, token = null, allSchemas = [], selectedSchema = null, currentFilter = 'custom';
-var pendingRows = [], pendingWB = null;
+var pendingRows = [], pendingWB = null, pendingAOA = null, pendingUploadLabel = '', pendingRowOffset = 0;
 const REQ = ['CLIENT_ID','CLIENT_SECRET','IMS_ORG'];
 const g = id => document.getElementById(id);
 
@@ -926,7 +938,9 @@ function doUploadFile(file) {
           pendingRows = parseXDM(obj);
         }
         pendingWB = null;
+        pendingAOA = null;
         g('sheetSelWrap').classList.remove('show');
+        g('headerRowWrap').classList.remove('show');
         setUploadReady(file.name, pendingRows.length);
       } else {
         pendingWB = XLSX.read(ev.target.result, { type: 'binary' });
@@ -955,10 +969,125 @@ function onSheetChange() {
 function parseUploadSheet(sheetName, filename) {
   if (!pendingWB) return;
   const sheet = pendingWB.Sheets[sheetName];
-  const raw   = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-  if (!raw.length) { alert_('uploadAlert', 'warning', 'This sheet appears to be empty.'); return; }
-  pendingRows = processSourceSheet(raw);
-  setUploadReady(filename || sheetName, pendingRows.length);
+  const aoa = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  if (!aoa.length) {
+    alert_('uploadAlert', 'warning', 'This sheet appears to be empty.');
+    g('headerRowWrap').classList.remove('show');
+    return;
+  }
+  pendingAOA = aoa;
+  pendingUploadLabel = filename || sheetName;
+  // Sheets whose real content starts below row 1 (e.g. a blank leading row
+  // Excel treats as outside its "used range") mean aoa[0] is NOT Excel's
+  // row 1 — track the offset so displayed row numbers match what the user
+  // actually sees when they open the file themselves.
+  const range = sheet['!ref'] ? XLSX.utils.decode_range(sheet['!ref']) : { s: { r: 0 } };
+  pendingRowOffset = range.s.r;
+  const guessIdx = detectHeaderRow(aoa);
+  populateHeaderRowPicker(aoa, guessIdx);
+  applyHeaderRow(guessIdx);
+}
+
+// Guess which row holds the real column headers, within the first 15 rows.
+// Uses the most COMMON non-empty-cell count as the "typical" row shape,
+// rather than just the row with the most filled cells — a data row with a
+// couple of stray extra values in otherwise-unused columns shouldn't outrank
+// the real header just because it happens to have more cells filled in.
+function detectHeaderRow(aoa) {
+  const maxScan = Math.min(aoa.length, 15);
+  const counts = [];
+  for (let i = 0; i < maxScan; i++) {
+    const row = aoa[i] || [];
+    counts.push(row.filter(c => c !== undefined && c !== null && String(c).trim() !== '').length);
+  }
+  const freq = {};
+  let modeCount = 0, modeFreq = -1;
+  counts.forEach(c => {
+    if (!c) return;
+    freq[c] = (freq[c] || 0) + 1;
+    if (freq[c] > modeFreq) { modeFreq = freq[c]; modeCount = c; }
+  });
+  const idx = counts.findIndex(c => c === modeCount);
+  return idx >= 0 ? idx : 0;
+}
+
+function populateHeaderRowPicker(aoa, selectedIdx) {
+  const maxRows = Math.min(aoa.length, 20);
+  // Row numbers shown/stored are the TRUE Excel row number (accounting for
+  // pendingRowOffset), so "Row 3" here always means the file's actual row 3;
+  // "none" is a separate sentinel for files with no header row at all.
+  let opts = `<option value="none">No header row</option>`;
+  for (let i = 0; i < maxRows; i++) {
+    const trueRowNum = pendingRowOffset + i + 1;
+    opts += `<option value="${trueRowNum}" ${i === selectedIdx ? 'selected' : ''}>Row ${trueRowNum}</option>`;
+  }
+  g('uHeaderRowSelect').innerHTML = opts;
+  g('headerRowWrap').classList.add('show');
+}
+
+function onHeaderRowChange() {
+  const v = g('uHeaderRowSelect').value;
+  applyHeaderRow(v === 'none' ? 'none' : (parseInt(v, 10) - pendingRowOffset - 1));
+}
+
+function applyHeaderRow(headerIdx) {
+  const aoa = pendingAOA || [];
+
+  if (headerIdx === 'none') {
+    g('uHeaderRowPreview').textContent = '(no header row — first column\'s values used as-is)';
+    pendingRows = processSourceSheet(aoaToObjectsNoHeader(aoa));
+    setUploadReady(pendingUploadLabel, pendingRows.length);
+    return;
+  }
+
+  const headerRow = aoa[headerIdx] || [];
+  const previewCells = headerRow.filter(c => c !== undefined && c !== null && String(c).trim() !== '');
+  g('uHeaderRowPreview').textContent = previewCells.length ? previewCells.join(' | ') : '(blank row)';
+
+  const rows = aoaToObjects(aoa, headerIdx);
+  pendingRows = processSourceSheet(rows);
+  setUploadReady(pendingUploadLabel, pendingRows.length);
+}
+
+// Convert an array-of-arrays sheet into keyed row objects using the chosen
+// row as headers, skipping any fully-blank rows (title/spacer rows above
+// or below it).
+function aoaToObjects(aoa, headerIdx) {
+  const headerRow = aoa[headerIdx] || [];
+  const headers = headerRow.map((h, i) => {
+    const t = (h === undefined || h === null) ? '' : String(h).trim();
+    return t || ('__EMPTY' + (i ? '_' + i : ''));
+  });
+  const rows = [];
+  for (let r = headerIdx + 1; r < aoa.length; r++) {
+    const rowArr = aoa[r] || [];
+    const hasData = rowArr.some(c => c !== undefined && c !== null && String(c).trim() !== '');
+    if (!hasData) continue;
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = rowArr[i] !== undefined ? rowArr[i] : ''; });
+    rows.push(obj);
+  }
+  return rows;
+}
+
+// No header row at all — every row (including row 1) is data. Columns get
+// generic positional names ("Column 1", "Column 2", ...) so the first
+// column's raw values still flow through as the Source Data Column, which
+// covers the common case of a plain, unlabeled list of field names.
+function aoaToObjectsNoHeader(aoa) {
+  const maxCols = aoa.reduce((m, row) => Math.max(m, (row || []).length), 0);
+  const headers = [];
+  for (let i = 0; i < maxCols; i++) headers.push('Column ' + (i + 1));
+  const rows = [];
+  for (let r = 0; r < aoa.length; r++) {
+    const rowArr = aoa[r] || [];
+    const hasData = rowArr.some(c => c !== undefined && c !== null && String(c).trim() !== '');
+    if (!hasData) continue;
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = rowArr[i] !== undefined ? rowArr[i] : ''; });
+    rows.push(obj);
+  }
+  return rows;
 }
 
 function setUploadReady(label, count) {

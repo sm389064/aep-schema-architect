@@ -99,13 +99,33 @@ function cellArrChange(i,el){
   renderTable();
 }
 
+// Normalize a header for comparison: lowercase, strip everything but letters/digits,
+// so "data_type", "Data Type" and "datatype" all compare equal.
+function normKey(s){ return (s||'').toString().trim().toLowerCase().replace(/[^a-z0-9]/g,''); }
+
+// Find the raw column key matching one of the given aliases. Tries an exact
+// normalized match first, then falls back to the column name *containing*
+// an alias as a substring (e.g. "source_column_nm" contains "sourcecolumn"),
+// so real-world naming variants (snake_case, abbreviations, extra suffixes
+// like "_nm") still match. Deliberately one-directional: matching on an
+// alias merely containing the column name would let a short/garbage header
+// (e.g. a stray "a" column) false-match almost any alias.
+function findCol(keys,aliases){
+  const normAliases=aliases.map(normKey);
+  let hit=keys.find(k=>normAliases.includes(normKey(k)));
+  if(hit)return hit;
+  return keys.find(k=>{
+    const nk=normKey(k);
+    return nk&&normAliases.some(a=>a&&nk.includes(a));
+  });
+}
+
 function processSourceSheet(raw){
   if(!raw.length)return[];
   const keys=Object.keys(raw[0]);
-  const find=a=>keys.find(k=>a.includes(k.trim().toLowerCase()));
-  const colKey=find(['source data column','source column','source','column name','field name','column','attribute'])||keys[0];
-  const typeKey=find(['source data type','data type','type','datatype']);
-  const descKey=find(['description','desc','definition','business definition']);
+  const colKey=findCol(keys,['source data column','source column','source','column name','field name','column','attribute'])||keys[0];
+  const typeKey=findCol(keys,['source data type','data type','type','datatype']);
+  const descKey=findCol(keys,['description','desc','definition','business definition']);
   return raw.map(r=>{
     const src=(r[colKey]||'').toString();if(!src.trim())return null;
     const row=blankRow('');
