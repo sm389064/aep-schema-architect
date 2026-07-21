@@ -229,8 +229,12 @@ body{display:flex;flex-direction:column}
 
   <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
     <!-- Step 1 right (proxy status) -->
-    <div id="tb1" style="display:flex;align-items:center">
+    <div id="tb1" style="display:flex;align-items:center;gap:8px">
       <div class="tb-status" id="proxyStatus"><i class="ti ti-circle-dashed"></i> Checking proxy…</div>
+      <div id="step1NavBtns" style="display:none;align-items:center;gap:8px">
+        <button class="tbtn" onclick="goToModeSelect()"><i class="ti ti-arrow-left"></i> Back</button>
+        <button class="tbtn" id="forwardBtn" onclick="goForwardToStep2()" disabled><i class="ti ti-arrow-right"></i> Forward</button>
+      </div>
     </div>
     <!-- Step 2 right (toolbar actions) -->
     <div id="tb2" class="tb-actions" style="display:none;align-items:center;gap:6px">
@@ -243,7 +247,7 @@ body{display:flex;flex-direction:column}
       <button class="tbtn" onclick="exportExcel()"><i class="ti ti-file-spreadsheet"></i> Export Excel</button>
       <button class="tbtn" onclick="exportJSON()"><i class="ti ti-file-code"></i> Export JSON</button>
       <div class="tb-div"></div>
-      <button class="tbtn" onclick="clearAll()"><i class="ti ti-trash"></i> Clear</button>
+      <button class="tbtn" onclick="goToStep1()"><i class="ti ti-arrow-left"></i> Back</button>
     </div>
   </div>
 </div>
@@ -661,6 +665,7 @@ body{display:flex;flex-direction:column}
 <script>
 /* ─── STATE ─── */
 var currentMode = null;   // 'aep' | 'standardize' | 'dictionary'
+var step2Reached = false; // has Step 2 been reached at least once in this run? gates the Forward button
 var setupRaw = {}, token = null, allSchemas = [], selectedSchema = null, currentFilter = 'custom';
 var pendingRows = [], pendingWB = null, pendingAOA = null, pendingUploadLabel = '', pendingRowOffset = 0;
 const REQ = ['CLIENT_ID','CLIENT_SECRET','IMS_ORG'];
@@ -729,6 +734,9 @@ const MODE_CONFIG = {
 
 function selectMode(mode) {
   currentMode = mode;
+  step2Reached = false;
+  updateForwardBtnState();
+  g('step1NavBtns').style.display = 'flex';
   const cfg = MODE_CONFIG[mode];
 
   // Hide mode panel, show step 1
@@ -781,6 +789,9 @@ function selectMode(mode) {
 function goToModeSelect() {
   // Reset and go back to mode selection
   currentMode = null;
+  step2Reached = false;
+  updateForwardBtnState();
+  g('step1NavBtns').style.display = 'none';
   g('modePanel').style.display  = 'flex';
   g('step1Panel').style.display = 'none';
   g('step2Panel').style.display = 'none';
@@ -834,6 +845,7 @@ async function goToStep2ByUpload() {
 }
 
 function _switchToStep2() {
+  step2Reached = true;
   g('step1Panel').style.display = 'none';
   g('step2Panel').style.display = 'flex';
   g('tb1').style.display = 'none';
@@ -842,10 +854,11 @@ function _switchToStep2() {
   g('wn1').textContent = '✓';
   g('ws2').className  = 'wiz-step ws-active';
   setTimeout(updateHbar, 50);
+  updateForwardBtnState();
 }
 
 function goToStep1() {
-  if (!g('ws1').classList.contains('ws-done')) return;
+  if (!step2Reached) return;
   g('step2Panel').style.display = 'none';
   g('step1Panel').style.display = 'flex';
   g('tb2').style.display = 'none';
@@ -853,6 +866,20 @@ function goToStep1() {
   g('ws1').className = 'wiz-step ws-active';
   g('wn1').textContent = '1';
   g('ws2').className  = 'wiz-step';
+  updateForwardBtnState();
+}
+
+// Forward mirrors _switchToStep2()'s panel/breadcrumb toggling only — it
+// must NOT re-fetch the AEP schema or re-parse an upload, since the table
+// data from the last visit is still sitting untouched in `data[]`.
+function goForwardToStep2() {
+  if (!step2Reached) return;
+  _switchToStep2();
+}
+
+function updateForwardBtnState() {
+  const btn = g('forwardBtn');
+  if (btn) btn.disabled = !step2Reached;
 }
 
 /* ─── AEP LOAD SCHEMA ─── */

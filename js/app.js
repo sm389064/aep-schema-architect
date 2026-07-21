@@ -468,24 +468,6 @@ function rowDrop(e, targetIdx){
 
 /* ─── MISC ─── */
 function note(msg){const el=document.getElementById('upNote');if(el)el.innerHTML=msg||'';}
-function clearAll(){
-  if(!confirm('Clear everything?'))return;
-  pushH();data=[];collapsed={};customCols=[];groupOrder=[];s2Touched=false;prevSelCount=0;
-  document.getElementById('cTenant').value='';
-  document.getElementById('cFieldGroup').value='';
-  document.getElementById('cFGClass').value='Custom';
-  document.getElementById('cObjectPath').value='';
-  document.getElementById('cIdentity').value='';
-  visibleCols=new Set([...DEFAULT_VISIBLE]);
-  filterValues={};
-  renderTable();setStatus('');note('');
-  document.getElementById('fileInput').value='';
-  document.getElementById('sheetBox').style.display='none';
-  document.getElementById('loadBtn').style.display='none';
-  document.getElementById('cfgCtx').className='cfg-ctx none';
-  document.getElementById('cfgCtx').innerHTML='';
-  refreshArrDropdown();
-}
 
 /* ─── INIT ─── */
 document.addEventListener('DOMContentLoaded',function(){
