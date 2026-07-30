@@ -682,11 +682,11 @@ window.addEventListener('load', async () => {
       el.innerHTML = '<i class="ti ti-circle-check"></i> Proxy ready';
     } else {
       el.className = 'tb-status err';
-      el.innerHTML = '<i class="ti ti-alert-circle"></i> Wrong server — run python server.py';
+      el.innerHTML = '<i class="ti ti-alert-circle"></i> Wrong server response — run this app locally to connect to AEP';
     }
   } catch {
     el.className = 'tb-status err';
-    el.innerHTML = '<i class="ti ti-alert-circle"></i> Run python server.py';
+    el.innerHTML = '<i class="ti ti-alert-circle"></i> No local proxy — run this app locally to connect to AEP';
   }
 });
 
@@ -1255,7 +1255,7 @@ async function doConnect() {
     });
     let tokenData;
     try { tokenData = await tokenRes.json(); }
-    catch { throw new Error('Proxy returned non-JSON. Make sure python server.py is running.'); }
+    catch { throw new Error('Proxy returned non-JSON. Run this app locally to connect to AEP.'); }
     if (!tokenData.access_token)
       throw new Error(`IMS auth failed (${tokenRes.status}): ${tokenData.error_description||tokenData.error||'No token'}`);
     token = tokenData.access_token;
