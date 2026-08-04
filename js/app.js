@@ -143,6 +143,21 @@ function refreshTenantBanner2(){
   }
 }
 
+// Manually reopen the Step-2 tenant banner at any time (e.g. to fix a typo
+// from a previous Apply), regardless of whether a '<>' placeholder is still
+// present — pre-fills whatever tenant is currently in the data so typing a
+// new one replaces it.
+function openTenantEditor(){
+  if(typeof data==='undefined'||!data.length){setStatus('No rows loaded yet.',true);return;}
+  const rowWithTenant=data.find(r=>extractTenant(r["XDM Column Path"]));
+  const current=rowWithTenant?extractTenant(rowWithTenant["XDM Column Path"]):'';
+  const inp=document.getElementById('tenantPlaceholderInput2');
+  inp.value='';
+  inp.dataset.placeholder=current;
+  document.getElementById('tenantPlaceholderBanner2').style.display='flex';
+  inp.focus();
+}
+
 function applyTenantCore(inputId){
   const input=document.getElementById(inputId);
   const raw=(input.value||'').trim();

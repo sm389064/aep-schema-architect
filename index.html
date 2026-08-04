@@ -68,6 +68,11 @@ body{display:flex;flex-direction:column}
 .mc-amber .mc-bullets li::before{background:#c87000}
 .mc-green .mc-bullets li::before{background:#2d9d78}
 
+.mc-toggle{display:inline-flex;background:#eef3ff;border-radius:20px;padding:3px;gap:2px}
+.mc-toggle-opt{font-size:12px;font-weight:700;padding:7px 16px;border-radius:16px;color:#5a7bb8;cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none}
+.mc-toggle-opt.active{background:#1473e6;color:#fff}
+.mc-toggle-opt:not(.active):hover{color:#1473e6}
+
 .mc-cta{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:700;padding:10px 20px;border-radius:8px;transition:all .15s;align-self:flex-start;margin-top:auto}
 .mc-blue  .mc-cta{background:#1473e6;color:#fff}
 .mc-amber .mc-cta{background:#e8a030;color:#fff}
@@ -267,17 +272,17 @@ body{display:flex;flex-direction:column}
 
       <div class="mode-cards">
 
-        <!-- Card A: Connect to AEP -->
+        <!-- Card A: Build from XDM Schema (connect live or upload one) -->
         <div class="mode-card mc-blue" onclick="selectMode('aep')">
-          <div class="mc-icon-wrap"><i class="ti ti-plug-connected"></i></div>
-          <div class="mc-title">Connect to AEP</div>
-          <div class="mc-desc">Pull a schema directly from your AEP sandbox and build a data mapping document from scratch.</div>
+          <div class="mc-icon-wrap"><i class="ti ti-sitemap"></i></div>
+          <div class="mc-title">Build from XDM Schema</div>
+          <div class="mc-desc">Connect live to your AEP sandbox, or upload a schema you've already downloaded, and build a data mapping document from it.</div>
           <ul class="mc-bullets">
-            <li>You have AEP API credentials</li>
+            <li>You have AEP API credentials, or a downloaded schema file</li>
             <li>Map source data to an existing XDM schema</li>
             <li>Start with a fully structured field list</li>
           </ul>
-          <span class="mc-cta"><i class="ti ti-plug-connected"></i> Connect to AEP</span>
+          <span class="mc-cta"><i class="ti ti-sitemap"></i> Get Started</span>
         </div>
 
         <!-- Card B: Standardize Mapping Doc -->
@@ -303,7 +308,7 @@ body{display:flex;flex-direction:column}
             <li>You have a list of source fields and data types</li>
             <li>No existing mapping — building from scratch</li>
             <li>Map to XDM field names, paths and field groups</li>
-            <li>Accepts <b>.xlsx</b>, <b>.csv</b> or <b>.json</b> AEP schema export</li>
+            <li>Accepts <b>.xlsx</b> or <b>.csv</b> files</li>
           </ul>
           <span class="mc-cta" style="background:#2d9d78"><i class="ti ti-upload"></i> Upload Data Dictionary</span>
         </div>
@@ -321,6 +326,40 @@ body{display:flex;flex-direction:column}
       <div class="s-hero-sm">
         <h2 id="s1Title">Connect to AEP</h2>
         <p id="s1Sub">Follow the steps below to authenticate and select a schema</p>
+      </div>
+
+      <!-- Connect Live / Upload Schema JSON toggle (aep mode only) -->
+      <div id="aepPathToggle" style="display:none;justify-content:center;margin-bottom:24px">
+        <div class="mc-toggle">
+          <span class="mc-toggle-opt active" id="aepPathOptLive" onclick="setAepPath('live')">Connect to AEP</span>
+          <span class="mc-toggle-opt" id="aepPathOptUpload" onclick="setAepPath('upload')">Upload XDM JSON Schema</span>
+        </div>
+      </div>
+
+      <!-- ── PATH A2: Upload Schema JSON ── -->
+      <div class="s-section" id="sec-schema-upload">
+        <div class="s-card" id="card-schema-upload">
+          <div class="s-card-head">
+            <div class="s-ch-num"><i class="ti ti-file-code"></i></div>
+            <div><div class="s-ch-title">Upload XDM JSON Schema</div><div class="s-ch-meta">Upload a schema you've already downloaded from AEP</div></div>
+            <span class="s-ch-badge badge-blue">Required</span>
+          </div>
+          <div class="s-card-body">
+            <div class="s-dz" id="sdz" onclick="document.getElementById('sfi').click()"
+              ondragover="sdzOver(event)" ondragleave="sdzOut()" ondrop="sdzDrop(event)">
+              <div class="s-dz-icon"><i class="ti ti-file-code" id="sdzIcon"></i></div>
+              <div class="s-dz-title" id="sdzTitle">Drag &amp; drop your schema JSON here</div>
+              <div class="s-dz-hint">or click to browse (.json)</div>
+            </div>
+            <input type="file" id="sfi" accept=".json" style="display:none" onchange="onSFSel(this)">
+            <div class="s-alert" id="schemaUploadAlert"><i class="ti ti-info-circle"></i><div id="schemaUploadAlertText"></div></div>
+          </div>
+          <div class="s-card-foot">
+            <button class="s-btn s-btn-lg" id="loadSchemaUploadBtn" onclick="goToStep2BySchemaUpload()" disabled>
+              <i class="ti ti-arrow-right"></i> Load &amp; Start Mapping
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- ── PATH A: AEP CREDENTIALS ── -->
@@ -502,9 +541,9 @@ body{display:flex;flex-direction:column}
             <div class="s-alert" id="uploadAlert"><i class="ti ti-info-circle"></i><div id="uploadAlertText"></div></div>
             <div id="tenantPlaceholderBanner" style="display:none;align-items:center;gap:8px;margin-top:10px;padding:10px 14px;background:#fff8e1;border:1px solid #f59f00;border-radius:6px;font-size:12px;flex-wrap:wrap">
               <i class="ti ti-alert-triangle" style="color:#f59f00;font-size:16px;flex-shrink:0"></i>
-              <span style="flex:1;min-width:200px">This file uses a <b>tenant ID placeholder</b>. Enter your real Tenant ID to update all XDM paths:</span>
+              <span style="flex:1;min-width:200px">Placeholder tenant found: &lt;XDM_TENANTID_PLACEHOLDER&gt;. Enter your real ID:</span>
               <input id="tenantPlaceholderInput" type="text" placeholder="e.g. wellsfargo"
-                style="padding:5px 9px;border:1px solid #d4a017;border-radius:4px;font-size:12px;width:160px;background:#fffdf0"
+                style="padding:5px 9px;border:1px solid #d4a017;border-radius:4px;font-size:12px;width:110px;background:#fffdf0"
                 onkeydown="if(event.key==='Enter')applyTenantReplacement()">
               <button class="btn btn-primary" style="padding:5px 14px;font-size:12px" onclick="applyTenantReplacement()">
                 <i class="ti ti-check"></i> Apply
@@ -568,11 +607,12 @@ body{display:flex;flex-direction:column}
 
     <div id="tenantPlaceholderBanner2" style="display:none;align-items:center;gap:8px;margin:0 0 10px;padding:10px 14px;background:#fff8e1;border:1px solid #f59f00;border-radius:6px;font-size:12px;flex-wrap:wrap">
       <i class="ti ti-alert-triangle" style="color:#f59f00;font-size:16px;flex-shrink:0"></i>
-      <span style="flex:1;min-width:200px">This file uses a <b>tenant ID placeholder</b>. Enter your real Tenant ID to update XDM paths. Select specific rows first to apply to only those, or leave none selected to apply to all:</span>
+      <span style="flex:1;min-width:200px">Placeholder tenant found: &lt;XDM_TENANTID_PLACEHOLDER&gt;. Enter your real ID:</span>
       <input id="tenantPlaceholderInput2" type="text" placeholder="e.g. wellsfargo"
-        style="padding:5px 9px;border:1px solid #d4a017;border-radius:4px;font-size:12px;width:160px;background:#fffdf0"
+        style="padding:5px 9px;border:1px solid #d4a017;border-radius:4px;font-size:12px;width:110px;background:#fffdf0"
         onkeydown="if(event.key==='Enter')applyTenantReplacement2()">
-      <button class="btn btn-primary" style="padding:5px 14px;font-size:12px" onclick="applyTenantReplacement2()">
+      <button class="btn btn-primary" style="padding:5px 14px;font-size:12px" onclick="applyTenantReplacement2()"
+        title="Applies to selected rows only, or all rows if none are selected">
         <i class="ti ti-check"></i> Apply
       </button>
     </div>
@@ -585,6 +625,7 @@ body{display:flex;flex-direction:column}
           <button class="btn btn-success" onclick="addRow()"><i class="ti ti-row-insert-bottom"></i> Add Row</button>
           <button class="btn btn-success" onclick="openAddColModal()"><i class="ti ti-column-insert-right"></i> Add Column</button>
           <button class="btn" onclick="openColPicker()"><i class="ti ti-layout-columns"></i> Show/Hide Columns</button>
+          <button class="btn" id="changeTenantBtn" style="display:none" onclick="openTenantEditor()" title="Fix a typo or change your tenant ID"><i class="ti ti-id-badge-2"></i> Change Tenant ID</button>
           <button class="btn" id="manageColsBtn" onclick="openManageColsModal()" style="display:none">
             <i class="ti ti-star"></i> Custom Cols
             <span id="customColCount" style="font-size:10px;background:#e8d000;color:#5a4a00;border-radius:3px;padding:0 4px;margin-left:2px"></span>
@@ -666,6 +707,7 @@ body{display:flex;flex-direction:column}
 /* ─── STATE ─── */
 var currentMode = null;   // 'aep' | 'standardize' | 'dictionary'
 var step2Reached = false; // has Step 2 been reached at least once in this run? gates the Forward button
+var lastLoadSource = '';  // 'live' | 'fileUpload' | 'schemaUpload' — which path loaded the current table data; gates the "Change Tenant ID" button (only relevant for schemaUpload, since the others manage tenant their own way)
 var setupRaw = {}, token = null, allSchemas = [], selectedSchema = null, currentFilter = 'custom';
 var pendingRows = [], pendingWB = null, pendingAOA = null, pendingUploadLabel = '', pendingRowOffset = 0;
 const REQ = ['CLIENT_ID','CLIENT_SECRET','IMS_ORG'];
@@ -693,8 +735,8 @@ window.addEventListener('load', async () => {
 /* ─── MODE SELECTION ─── */
 const MODE_CONFIG = {
   aep: {
-    step1Label : 'Connect to AEP',
-    step1Title : 'Connect to AEP',
+    step1Label : 'Build from XDM Schema',
+    step1Title : 'How Do You Want to Bring Your XDM Schema?',
     step1Sub   : 'Authenticate and select a schema from your sandbox',
     showAep    : true
   },
@@ -706,6 +748,7 @@ const MODE_CONFIG = {
     uploadTitle: 'Upload Existing Mapping Document',
     uploadMeta : 'Accepts Excel, CSV or JSON mapping exports',
     uploadHint : '.xlsx · .xls · .csv · .json',
+    accept     : '.xlsx,.xls,.csv,.json',
     uploadIcon : 'ti-file-text',
     badgeColor : '#e8a030',
     btnColor   : '#e8a030',
@@ -721,7 +764,8 @@ const MODE_CONFIG = {
     showAep    : false,
     uploadTitle: 'Upload Data Dictionary',
     uploadMeta : 'Accepts Excel or CSV files with source columns and data types',
-    uploadHint : '.xlsx · .xls · .csv · .json',
+    uploadHint : '.xlsx · .xls · .csv',
+    accept     : '.xlsx,.xls,.csv',
     uploadIcon : 'ti-table-column',
     badgeColor : '#2d9d78',
     btnColor   : '#2d9d78',
@@ -731,6 +775,88 @@ const MODE_CONFIG = {
     info3      : 'Add field groups, identities, and export a complete mapping doc.'
   }
 };
+
+/* ─── AEP PATH TOGGLE (Connect Live / Upload Schema JSON) ─── */
+function setAepPath(which) {
+  g('aepPathOptLive').classList.toggle('active', which === 'live');
+  g('aepPathOptUpload').classList.toggle('active', which === 'upload');
+  if (which === 'live') {
+    g('sec-schema-upload').classList.remove('visible');
+    g('sec-creds').classList.add('visible');
+    g('s1Sub').textContent = 'Build from AEP directly';
+  } else {
+    g('sec-creds').classList.remove('visible');
+    g('sec-sandbox').classList.remove('visible');
+    g('sec-schema').classList.remove('visible');
+    g('sec-schema-upload').classList.add('visible');
+    g('s1Sub').textContent = 'Build from downloaded XDM schema structure';
+  }
+}
+
+/* ─── UPLOAD SCHEMA JSON (offline twin of Connect to AEP) ─── */
+var pendingSchemaRows = [];
+function sdzOver(e) { e.preventDefault(); g('sdz').classList.add('over'); }
+function sdzOut()   { g('sdz').classList.remove('over'); }
+function sdzDrop(e) { e.preventDefault(); sdzOut(); if (e.dataTransfer.files[0]) doUploadSchemaFile(e.dataTransfer.files[0]); }
+function onSFSel(input) { if (input.files[0]) doUploadSchemaFile(input.files[0]); }
+
+function doUploadSchemaFile(file) {
+  alertHide('schemaUploadAlert');
+  const nm = file.name.toLowerCase();
+  if (!nm.endsWith('.json')) {
+    alert_('schemaUploadAlert', 'error', 'Please upload a .json file.');
+    return;
+  }
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      const obj = JSON.parse(ev.target.result);
+      // Same routing as the proven JSON upload path already used elsewhere in
+      // the app: an array is an AEP export "bundle" (mixins/datatypes/schemas/
+      // descriptors); a single object is XDM instance data, flattened field by field.
+      // Tenant-placeholder detection happens after loading into the mapping
+      // table (Step 2), where the user can actually see the field paths —
+      // not here, before they've seen any output.
+      if (Array.isArray(obj)) {
+        pendingSchemaRows = parseAEPExport(obj).rows;
+      } else {
+        pendingSchemaRows = parseXDM(obj);
+      }
+      if (!pendingSchemaRows.length) {
+        alert_('schemaUploadAlert', 'warning', 'No fields were found in this file.');
+        g('loadSchemaUploadBtn').disabled = true;
+        return;
+      }
+      g('sdz').className = 's-dz ok';
+      g('sdzIcon').className = 'ti ti-circle-check';
+      g('sdzTitle').textContent = file.name;
+      alert_('schemaUploadAlert', 'success',
+        '<b>' + pendingSchemaRows.length + ' fields detected.</b> Click below to load them into the mapping table.');
+      g('loadSchemaUploadBtn').disabled = false;
+      if (!Array.isArray(obj) && obj.title) {
+        const nameEl = g('schemaName');
+        if (nameEl) nameEl.value = obj.title;
+      }
+    } catch (err) {
+      alert_('schemaUploadAlert', 'error', 'Could not parse file: ' + err.message);
+    }
+  };
+  r.readAsText(file);
+}
+
+function goToStep2BySchemaUpload() {
+  if (!pendingSchemaRows.length) return;
+  lastLoadSource = 'schemaUpload';
+  _switchToStep2();
+  pushH();
+  data = pendingSchemaRows.slice();
+  data.forEach(row => customCols.forEach(c => { if (row[c] === undefined) row[c] = ''; }));
+  filterValues = {};
+  initGroupOrder();
+  renderTable();
+  setStatus('Loaded ' + data.length + ' fields from uploaded schema.');
+  if (typeof refreshTenantBanner2 === 'function') refreshTenantBanner2();
+}
 
 function selectMode(mode) {
   currentMode = mode;
@@ -755,16 +881,20 @@ function selectMode(mode) {
   // Update step 1 hero
   g('s1Title').textContent = cfg.step1Title;
   g('s1Sub').textContent   = cfg.step1Sub;
+  g('s1Sub').style.display = '';
 
   if (cfg.showAep) {
-    // Show AEP sections, hide upload
-    g('sec-creds').classList.add('visible');
+    // Show AEP sections + the Connect Live / Upload Schema JSON toggle, hide the generic upload card
+    g('aepPathToggle').style.display = 'flex';
     g('sec-upload').classList.remove('visible');
+    setAepPath('live');
   } else {
-    // Hide ALL AEP sections, show upload card only
+    // Hide ALL AEP sections + toggle, show the generic upload card only
+    g('aepPathToggle').style.display = 'none';
     g('sec-creds').classList.remove('visible');
     g('sec-sandbox').classList.remove('visible');
     g('sec-schema').classList.remove('visible');
+    g('sec-schema-upload').classList.remove('visible');
     g('conn-1').style.display = 'none';
     g('conn-2').style.display = 'none';
 
@@ -773,6 +903,7 @@ function selectMode(mode) {
     g('uploadCardMeta').textContent   = cfg.uploadMeta;
     g('udzHint').textContent          = 'or click to browse (' + cfg.uploadHint + ')';
     g('udzIcon').className            = 'ti ' + cfg.uploadIcon;
+    g('ufi').setAttribute('accept', cfg.accept || '.xlsx,.xls,.csv,.json');
     g('udzTitle').textContent         = 'Drag & drop your file here';
     g('uploadCardBadge').style.background = cfg.badgeColor;
     g('loadUploadBtn').style.background   = cfg.btnColor;
@@ -819,6 +950,7 @@ function goToModeSelect() {
 async function goToStep2() {
   // Called from AEP path (schema selected)
   if (!selectedSchema) return;
+  lastLoadSource = 'live';
   _switchToStep2();
   await loadSchemaFromAEP(selectedSchema);
 }
@@ -826,6 +958,7 @@ async function goToStep2() {
 async function goToStep2ByUpload() {
   // Called from file upload path (B/C)
   if (!pendingRows.length) return;
+  lastLoadSource = 'fileUpload';
   _switchToStep2();
   // Load the pending rows into the table
   pushH();
@@ -855,6 +988,11 @@ function _switchToStep2() {
   g('ws2').className  = 'wiz-step ws-active';
   setTimeout(updateHbar, 50);
   updateForwardBtnState();
+  // "Change Tenant ID" is only relevant when the table was loaded via
+  // Upload XDM JSON Schema — the other paths manage tenant their own way
+  // (live connect already knows the real tenant; file-upload paths have
+  // their own upload-time tenant banner).
+  g('changeTenantBtn').style.display = (lastLoadSource === 'schemaUpload') ? 'inline-flex' : 'none';
 }
 
 function goToStep1() {
@@ -938,9 +1076,15 @@ function onUFSel(input) { if (input.files[0]) doUploadFile(input.files[0]); }
 
 function doUploadFile(file) {
   alertHide('uploadAlert');
+  const nm = file.name.toLowerCase();
+  const cfg = MODE_CONFIG[currentMode] || {};
+  const allowedExts = (cfg.accept || '.xlsx,.xls,.csv,.json').split(',');
+  if (!allowedExts.some(ext => nm.endsWith(ext))) {
+    alert_('uploadAlert', 'error', 'This mode only accepts ' + allowedExts.join(', ') + ' files. "' + file.name + '" was not loaded.');
+    return;
+  }
   const banner = document.getElementById('tenantPlaceholderBanner');
   if (banner) banner.style.display = 'none';
-  const nm = file.name.toLowerCase();
   const r = new FileReader();
   r.onload = ev => {
     try {
