@@ -1,4 +1,4 @@
-# AEP Schema Architect
+# AEP Data Mapping Document Builder
 
 A browser-based tool for designing Adobe Experience Platform (AEP) XDM schema mapping documents. Upload an XDM JSON schema or a source data dictionary, enrich it with field groups, identity markers, and array assignments, then export a DA-approved 24-column mapping document as Excel or machine-readable JSON.
 

@@ -1,4 +1,4 @@
-// Phase 2 stub — AEP Schema Architect Agent
+// Phase 2 stub — AEP Data Mapping Document Builder Agent
 export default function handler(req, res) {
   res.status(501).json({
     error: "Not implemented",

@@ -13,7 +13,7 @@ async function exportExcel(){
   const groups=buildGroups();
 
   const wb=new ExcelJS.Workbook();
-  wb.creator='AEP Schema Architect';
+  wb.creator='AEP Data Mapping Document Builder';
   const ws=wb.addWorksheet('Mapping');
 
   // ── Sheet settings
@@ -279,7 +279,7 @@ function exportJSON(){
 
   const contract={
     version:"1.0",
-    generatedBy:"AEP Schema Architect Phase 1",
+    generatedBy:"AEP Data Mapping Document Builder",
     generatedAt:new Date().toISOString(),
     schemaName,
     columns:allDataCols,

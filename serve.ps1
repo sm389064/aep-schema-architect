@@ -10,8 +10,8 @@ $listener.Prefixes.Add("http://localhost:$Port/")
 $listener.Start()
 
 Write-Host ""
-Write-Host "  AEP Schema Architect - local server"
-Write-Host "  -----------------------------------"
+Write-Host "  AEP Data Mapping Document Builder - local server"
+Write-Host "  -------------------------------------------------"
 Write-Host "  App       : http://localhost:$Port/index.html"
 Write-Host "  IMS proxy : http://localhost:$Port/api/token"
 Write-Host ""
