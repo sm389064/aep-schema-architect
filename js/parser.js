@@ -120,21 +120,119 @@ function findCol(keys,aliases){
   });
 }
 
+function normYesNo(v){
+  const s=(v||'').toString().trim().toLowerCase();
+  if(['y','yes','true','1'].includes(s))return'Yes';
+  if(['n','no','false','0'].includes(s))return'No';
+  return'';
+}
+
+function normIdentity(v){
+  const s=(v||'').toString().trim().toLowerCase();
+  if(s==='primary')return'Primary';
+  if(s==='secondary')return'Secondary';
+  return'';
+}
+
+function normFgClass(v){
+  const s=(v||'').toString().trim().toLowerCase();
+  if(s==='custom'||s==='tenant')return'Custom';
+  if(s==='ootb'||s==='oob'||s==='standard'||s==='adobe')return'OOTB';
+  return'';
+}
+
+function normXdmType(v){
+  const s=(v||'').toString().trim().toLowerCase();
+  if(!s)return'';
+  if(s==='datetime')return'date-time';
+  return s;
+}
+
+// Map an uploaded, possibly-messy mapping sheet onto our own column set.
+// Every one of our columns gets its own chance to auto-match a source
+// column (by exact or fuzzy header name via findCol) — whatever doesn't
+// match stays blank for the user to fill in by hand. Claims are resolved
+// most-specific-alias-first and each matched source column is excluded
+// from later, looser lookups, so a generic alias (e.g. "field group")
+// can't steal a column that a more specific field (e.g. "field group
+// classification") actually wanted.
 function processSourceSheet(raw){
   if(!raw.length)return[];
   const keys=Object.keys(raw[0]);
-  const colKey=findCol(keys,['source data column','source column','source','column name','field name','column','attribute'])||keys[0];
-  const typeKey=findCol(keys,['source data type','data type','type','datatype']);
-  const descKey=findCol(keys,['description','desc','definition','business definition']);
+  const used=new Set();
+  function claim(aliases){
+    const avail=keys.filter(k=>!used.has(k));
+    const hit=findCol(avail,aliases);
+    if(hit)used.add(hit);
+    return hit;
+  }
+
+  const colKey=claim(['source data column','source column','source','column name','field name','column','attribute'])||keys[0];
+  used.add(colKey);
+  const pathKey=claim(['xdm column path','xdm path','column path','target path','full path']);
+  const aepFieldKey=claim(['aep field name','target field name','xdm field name']);
+  const aepDisplayKey=claim(['aep display name','target display name']);
+  const identityKey=claim(['primary/secondary identity','primarysecondaryidentity','identity type']);
+  const fgClassKey=claim(['field group classification','fg classification','custom/ootb','custom or ootb']);
+  const fgNameKey=claim(['field group name','field group','fg name']);
+  const xdmTypeKey=claim(['xdm data type','xdm type','target data type']);
+  const typeKey=claim(['source data type','source type','datatype']);
+  const isReqKey=claim(['isrequired','is required','required']);
+  const arrayKey=claim(['array','is array']);
+  const relKey=claim(['relationship']);
+  const descKey=claim(['description','business definition','definition']);
+  const transDescKey=claim(['transformations desc','transformation description','transformations description']);
+  const preTransKey=claim(['pre-transformations required','pre transformations required']);
+  const modelingKey=claim(['modeling']);
+  const contractLabelsKey=claim(['contract labels','contract label']);
+  const identityLabelsKey=claim(['identity labels','identity label']);
+  const sensitiveLabelsKey=claim(['sensitive labels','sensitive label']);
+  const displayNameKey=claim(['display name']);
+  const componentTypeKey=claim(['component type']);
+  const attributionKey=claim(['attribution settings']);
+  const scriptMixinKey=claim(['xdm script mixin']);
+  const scriptDuleKey=claim(['xdm script dule']);
+
   return raw.map(r=>{
     const src=(r[colKey]||'').toString();if(!src.trim())return null;
-    const row=blankRow('');
+
+    // Derive object-level grouping and Custom/OOTB classification straight
+    // from the XDM Column Path when we have one — same rule the rest of the
+    // app already follows: a leading "_" segment is the tenant (Custom),
+    // everything between it and the leaf is the object path. Without a
+    // leading "_" the field is OOTB, and everything but the leaf is the
+    // object path. This keeps Standardize-uploaded rows grouped in the
+    // table exactly like data-dictionary and JSON-upload rows.
+    const path=pathKey?(r[pathKey]||'').toString():'';
+    const tenant=extractTenant(path);
+    const segs=path?path.split('.').filter(Boolean):[];
+    const objPath=path?(tenant?segs.slice(1,-1):segs.slice(0,-1)).join('.'):'';
+
+    const row=blankRow(objPath);
     row["Source Data Column"]=src;
-    row["Source Data Type"]=typeKey?(r[typeKey]||'string'):'string';
-    row["XDM Data Type"]=row["Source Data Type"];
-    row["Description"]=descKey?(r[descKey]||''):'';
-    row["AEP Field Name"]=toCamel(src);
-    row["AEP Display Name"]=toDisplayName(src);
+    row["Source Data Type"]=typeKey?(r[typeKey]||'string').toString():'string';
+    row["Description"]=descKey?(r[descKey]||'').toString():'';
+    row["AEP Field Name"]=(aepFieldKey&&r[aepFieldKey])?r[aepFieldKey].toString():toCamel(src);
+    row["AEP Display Name"]=(aepDisplayKey&&r[aepDisplayKey])?r[aepDisplayKey].toString():toDisplayName(src);
+    row["XDM Column Path"]=path;
+    row["XDM Data Type"]=xdmTypeKey?normXdmType(r[xdmTypeKey]):(typeKey?normXdmType(r[typeKey]):'string');
+    row["Array"]=arrayKey?(r[arrayKey]||'').toString():'';
+    row["isRequired"]=isReqKey?normYesNo(r[isReqKey]):'';
+    row["Relationship"]=relKey?(r[relKey]||'').toString():'';
+    row["Primary/Secondary Identity"]=identityKey?normIdentity(r[identityKey]):'';
+    row["Field Group Name"]=fgNameKey?(r[fgNameKey]||'').toString():'';
+    row["Field Group Classification"]=path?(tenant?'Custom':'OOTB'):(fgClassKey?normFgClass(r[fgClassKey]):'');
+    row["Modeling"]=modelingKey?(r[modelingKey]||'').toString():'';
+    row["Pre-transformations Required?"]=preTransKey?(r[preTransKey]||'').toString():'';
+    row["Transformations Desc"]=transDescKey?(r[transDescKey]||'').toString():'';
+    row["Contract Labels"]=contractLabelsKey?(r[contractLabelsKey]||'').toString():'';
+    row["Identity Labels"]=identityLabelsKey?(r[identityLabelsKey]||'').toString():'';
+    row["Sensitive Labels"]=sensitiveLabelsKey?(r[sensitiveLabelsKey]||'').toString():'';
+    row["Display Name"]=displayNameKey?(r[displayNameKey]||'').toString():'';
+    row["Component Type"]=componentTypeKey?(r[componentTypeKey]||'').toString():'';
+    row["Attribution Settings"]=attributionKey?(r[attributionKey]||'').toString():'';
+    row["XDM Script Mixin"]=scriptMixinKey?(r[scriptMixinKey]||'').toString():'';
+    row["XDM Script DULE"]=scriptDuleKey?(r[scriptDuleKey]||'').toString():'';
     return row;
   }).filter(Boolean);
 }

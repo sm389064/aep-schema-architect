@@ -1119,31 +1119,27 @@ function parseUploadSheet(sheetName, filename) {
   applyHeaderRow(guessIdx);
 }
 
-// Guess which row holds the real column headers, within the first 15 rows.
-// Uses the most COMMON non-empty-cell count as the "typical" row shape,
-// rather than just the row with the most filled cells — a data row with a
-// couple of stray extra values in otherwise-unused columns shouldn't outrank
-// the real header just because it happens to have more cells filled in.
+// Guess which row holds the real column headers, within the first 30 rows.
+// Picks the row with the most filled-in cells: real headers name every
+// column, so they almost always have more non-blank cells than any single
+// data row (which typically leaves several optional columns empty) and far
+// more than the sparse title/metadata rows real-world exports tend to stack
+// above the actual table. Ties resolve to the first (topmost) occurrence,
+// which favors the header over any coincidentally-full data row beneath it.
 function detectHeaderRow(aoa) {
-  const maxScan = Math.min(aoa.length, 15);
+  const maxScan = Math.min(aoa.length, 30);
   const counts = [];
   for (let i = 0; i < maxScan; i++) {
     const row = aoa[i] || [];
     counts.push(row.filter(c => c !== undefined && c !== null && String(c).trim() !== '').length);
   }
-  const freq = {};
-  let modeCount = 0, modeFreq = -1;
-  counts.forEach(c => {
-    if (!c) return;
-    freq[c] = (freq[c] || 0) + 1;
-    if (freq[c] > modeFreq) { modeFreq = freq[c]; modeCount = c; }
-  });
-  const idx = counts.findIndex(c => c === modeCount);
+  const best = Math.max(...counts);
+  const idx = counts.findIndex(c => c === best);
   return idx >= 0 ? idx : 0;
 }
 
 function populateHeaderRowPicker(aoa, selectedIdx) {
-  const maxRows = Math.min(aoa.length, 20);
+  const maxRows = Math.min(aoa.length, 30);
   // Row numbers shown/stored are the TRUE Excel row number (accounting for
   // pendingRowOffset), so "Row 3" here always means the file's actual row 3;
   // "none" is a separate sentinel for files with no header row at all.
