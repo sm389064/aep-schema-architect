@@ -7,9 +7,6 @@ let history = [];
 let redoStack = [];
 let visibleCols = new Set([...DEFAULT_VISIBLE]);
 let filterValues = {};
-let tempWB = null;
-let mode = '';
-let jsonRows = [];
 let s2Touched = false;
 let prevSelCount = 0;
 let syncLock = false;
@@ -115,15 +112,11 @@ function refreshArrDropdown(){
 }
 function onArrChange(){document.getElementById('cArray').dataset.current=document.getElementById('cArray').value;}
 
-// Step-1 (upload card) banner
-function applyTenantReplacement(){ applyTenantCore('tenantPlaceholderInput'); }
 // Step-2 (mapping table) banner
 function applyTenantReplacement2(){ applyTenantCore('tenantPlaceholderInput2'); }
 
 function hideTenantBanners(){
-  const b1=document.getElementById('tenantPlaceholderBanner');
   const b2=document.getElementById('tenantPlaceholderBanner2');
-  if(b1)b1.style.display='none';
   if(b2)b2.style.display='none';
 }
 
@@ -193,9 +186,6 @@ function applyTenantCore(inputId){
     // Applied from step 1 before loading — replace across all pending rows.
     pendingRows.forEach(replaceInRow);
     setUploadReady('',pendingRows.length);
-  }else if(jsonRows&&jsonRows.length){
-    jsonRows.forEach(replaceInRow);
-    note(`AEP Schema Export · Tenant: <b>${esc(newTenant)}</b> · ${jsonRows.length} fields`);
   }
 }
 
